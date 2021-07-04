@@ -1,0 +1,86 @@
+#!/bin/sh
+
+PREREQ="udev"
+
+prereqs() {
+    echo "${PREREQ}"
+}
+
+case "${1}" in
+    prereqs)
+        prereqs
+        exit 0
+    ;;
+esac
+
+. /scripts/functions
+
+if [ ! -e /sbin/wg ]; then
+  log_failure_msg 'Wireguard binary not found, skipping setup'
+  exit 0
+fi
+if [ ! -e /etc/wireguard/config ]; then
+  log_failure_msg 'Wireguard config not found, skipping setup'
+  exit 0
+fi
+if [ ! -e /etc/wireguard/private_key ]; then
+  log_failure_msg 'Wireguard client private key not found, skipping setup'
+  exit 0
+fi
+
+log_begin_msg 'Loading wireguard config'
+. /etc/wireguard/config
+
+if [ -z ${INTERFACE} ]; then
+  log_failure_msg 'Interface name is not defined!'
+  return 1
+fi
+
+if [ -z ${INTERFACE_ADDR} ]; then
+  log_failure_msg 'Interface address is not defined!'
+  return 1
+fi
+
+if [ -z ${PEER_PUBLIC_KEY} ]; then
+  log_failure_msg 'Peer Public Key is not defined!'
+  return 1
+fi
+
+if [ -z ${PEER_ENDPOINT} ]; then
+  log_failure_msg 'Peer endpoint is not defined!'
+  return 1
+fi
+
+if [ -z ${PERSISTENT_KEEPALIVES} ]; then
+  log_failure_msg 'Persistent Keep Alives is not defined!'
+  return 1
+fi
+
+if [ -z ${ALLOWED_IPS} ]; then
+  log_failure_msg 'Allowed IPs is not defined!'
+  return 1
+fi
+log_end_msg
+
+log_begin_ms 'Starting wireguard'
+
+# Ensure networking is started (idempotent) and setup DNS.
+configure_networking
+touch /etc/resolv.conf
+for adapter in /run/net-*.conf; do
+  source "${adapter}"
+  echo nameserver "${IPV4DNS0}" >> /etc/resolv.conf
+  echo nameserver "${IPV4DNS1}" >> /etc/resolv.conf
+done
+
+ip link add dev ${INTERFACE} type wireguard
+/sbin/wg set ${INTERFACE} \
+    private-key /etc/wireguard/private_key \
+    peer ${PEER_PUBLIC_KEY} \
+    endpoint ${PEER_ENDPOINT} \
+    persistent-keepalive ${PERSISTENT_KEEPALIVES} \
+    allowed-ips ${ALLOWED_IPS}
+ip addr add ${INTERFACE_ADDR} dev ${INTERFACE}
+ip link set ${INTERFACE} up
+ip route add ${ALLOWED_IPS} dev ${INTERFACE}
+log_end_msg

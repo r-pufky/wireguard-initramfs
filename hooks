@@ -1,0 +1,46 @@
+#!/bin/sh
+
+PREREQ=""
+
+prereqs() {
+    echo "${PREREQ}"
+}
+
+case "${1}" in
+    prereqs)
+        prereqs
+        exit 0
+    ;;
+esac
+
+. /usr/share/initramfs-tools/hook-functions
+
+CONFIG='/etc/wireguard-initramfs/config'
+
+# Validate and copy configuration to initramfs
+if [ ! -s "${CONFIG}" ]; then
+  echo "Wireguard initramfs config required. Missing: ${CONFIG}"
+  return 1
+fi
+. "${CONFIG}"
+if [ ! -s "${CLIENT_PRIVATE_KEYFILE}" ]; then
+  echo "Wireguard client private key required. Missing: ${CLIENT_PRIVATE_KEYFILE}"
+  return 1
+fi
+
+# Copy latest versions of shared objects needed for DNS resolution
+for so in $(ldconfig -p | sed -nr 's/^\s*libnss_files\.so\.[0-9]+\s.*=>\s*//p'); do
+  copy_exec "${so}"
+done
+for so in $(ldconfig -p | sed -nr 's/^\s*libnss_dns\.so\.[0-9]+\s.*=>\s*//p'); do
+  copy_exec "${so}"
+done
+
+# Copy config and host keys
+mkdir -p -- "${DESTDIR}/etc/wireguard"
+cp -p "${CONFIG}" "${DESTDIR}/etc/wireguard"
+cp -p "${CLIENT_PRIVATE_KEYFILE}" "${DESTDIR}/etc/wireguard/private_key"
+
+# Add modules and wireguard exec
+manual_add_modules wireguard
+copy_exec /usr/bin/wg /sbin

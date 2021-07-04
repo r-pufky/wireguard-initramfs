@@ -36,15 +36,15 @@ Configuration is explained within `/etc/wireguard-initramfs/config`. Be sure to
 set the private key as well.
 
 Restricting dropbear connections to **only** wireguard:
-  Confirm wireguard/dropbear work without restriction first.
-
-  Set dropbear listen address to only wireguard client interface address.
-  Using example configuration:
-
-  /etc/dropbear-initramfs/config
-  ```bash
-  DROPBEAR_OPTIONS='... -p 172.31.255.10:22 ...'
-  ```
+> Confirm wireguard/dropbear work without restriction first.
+>
+> Set dropbear listen address to only wireguard client interface address.
+> Using example configuration:
+>
+> /etc/dropbear-initramfs/config
+> ```bash
+> DROPBEAR_OPTIONS='... -p 172.31.255.10:22 ...'
+> ```
 
 Refer to [wg set man page](https://man7.org/linux/man-pages/man8/wg.8.html) for
 additional information.

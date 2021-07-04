@@ -1,21 +1,22 @@
 #!/bin/sh
 
-PREREQ="dropbear"
+PREREQ=""
 
 prereqs() {
-	echo "${PREREQ}"
+  echo "${PREREQ}"
 }
 
 case "${1}" in
-    prereqs)
-        prereqs
-        exit 0
-    ;;
+  prereqs)
+    prereqs
+    exit 0
+  ;;
 esac
 
 . /scripts/functions
 
 . /etc/wireguard/config
+
 log_begin_msg 'Stopping wireguard boot network'
 ip link delete dev ${INTERFACE}
 log_end_msg

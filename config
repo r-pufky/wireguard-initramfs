@@ -2,19 +2,17 @@
 #
 # NOTE: As most systems do not encrypt /boot, private key material is exposed
 #       and compromised/untrusted. Boot wireguard network should be
-#       **different** & untrusted, versus the network used after booting.
+#       **different** & untrusted; versus the network used after booting.
+#       Always restrict ports and access on the wireguard server.
 #       
 # Be sure to test wireguard config with a running system before setting
 # options. See: https://manpages.debian.org/unstable/wireguard-tools/wg.8.en.html
 #
 # Restricting dropbear connections to **only** wireguard:
-#   Confirm wireguard/dropbear work without restriction first.
-#
-#   Set dropbear listen address to only wireguard client interface address.
-#   Using example configuration:
+# * Confirm wireguard/dropbear work without restriction first.
+# * Set dropbear listen address to only wireguard client interface address.
 #
 #   /etc/dropbear-initramfs/config
-#     ...
 #     DROPBEAR_OPTIONS='... -p 172.31.255.10:22 ...'
 #
 
@@ -24,7 +22,7 @@ INTERFACE=example_vpn
 # CIDR wireguard interface address.
 INTERFACE_ADDR=172.31.255.10/32
 
-# Peer public key (server's public key)
+# Peer public key (server's public key).
 PEER_PUBLIC_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 # IP:PORT of the peer (server); any reachable IP/DNS.
@@ -33,8 +31,8 @@ PEER_ENDPOINT=wg.example.com:51820
 # Client Private key. Specify location of file containing only the private key.
 CLIENT_PRIVATE_KEYFILE=/etc/wireguard-initramfs/private_key
 
-# Keepalives. Required to ensure connection for non-exposed ports.
+# Persistent Keepalive. Required to ensure connection for non-exposed ports.
 PERSISTENT_KEEPALIVES=25
 
-# CIDR IP's allowed on wireguard connection, typically the peer (server)
+# Allowed IP's (CIDR) on wireguard; for boot this should be the peer (server).
 ALLOWED_IPS=172.31.255.254/32

@@ -83,15 +83,15 @@ Q: **I want to restrict dropbear to only wireguard**
 > A: Supported. Confirm wireguard works before restricting normal networks.
 >
 > Restricting dropbear connections to **only** wireguard:
->   Confirm wireguard/dropbear work without restriction first.
->
->   Set dropbear listen address to only wireguard client interface address.
->   Using example configuration:
->
->   /etc/dropbear-initramfs/config
->   ```bash
->   DROPBEAR_OPTIONS='... -p 172.31.255.10:22 ...'
->   ```
+> >  Confirm wireguard/dropbear work without restriction first.
+> >
+> >  Set dropbear listen address to only wireguard client interface address.
+> >  Using example configuration:
+> >
+> >  /etc/dropbear-initramfs/config
+> >  ```bash
+> >  DROPBEAR_OPTIONS='... -p 172.31.255.10:22 ...'
+> >  ```
 
 ## Bug / Patches / Contributions?
 All are welcome, please submit a pull request or open a bug!

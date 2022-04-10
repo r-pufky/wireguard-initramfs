@@ -1,7 +1,5 @@
 # Makefile for wireguard initramfs boot.
 
-# You can set these variables from the command line, and also
-# from the environment for the first two.
 TARGETDIR = /etc/wireguard-initramfs
 INITRAMFS = /etc/initramfs-tools
 

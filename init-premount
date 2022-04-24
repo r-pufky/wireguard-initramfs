@@ -62,7 +62,7 @@ if [ -z ${ALLOWED_IPS} ]; then
 fi
 log_end_msg
 
-log_begin_ms 'Starting wireguard'
+log_begin_msg 'Starting wireguard'
 # Ensure networking is started (idempotent) and setup DNS.
 configure_networking
 touch /etc/resolv.conf

@@ -2,6 +2,7 @@
 
 TARGETDIR = /etc/wireguard-initramfs
 INITRAMFS = /etc/initramfs-tools
+DOCSDIR   = /usr/local/share/docs/wireguard-initramfs
 
 help:
 	@echo "USAGE:"
@@ -13,6 +14,8 @@ help:
 	@echo "        Remove wireguard-initramfs from initramfs, leaves "
 	@echo "        $(TARGETDIR). Does not need to be installed."
 	@echo
+	@echo "Example configuration located at: $(DOCSDIR)"
+	@echo
 
 .PHONY: help Makefile
 
@@ -23,7 +26,7 @@ install: remove_legacy
 	@mkdir -p "$(TARGETDIR)"
 	@touch "$(TARGETDIR)/private_key"
 	@chmod 0600 "$(TARGETDIR)/private_key"
-	@cp -v config "$(TARGETDIR)/config"
+	@cp -vn config "$(TARGETDIR)/config"
 	@chmod 0644 "$(TARGETDIR)/config"
 	@cp -v hooks "$(INITRAMFS)/hooks/wireguard"
 	@chmod 0755 hooks "$(INITRAMFS)/hooks/wireguard"
@@ -31,6 +34,10 @@ install: remove_legacy
 	@chmod 0755 init-premount "$(INITRAMFS)/scripts/init-premount/wireguard"
 	@cp -v init-bottom "$(INITRAMFS)/scripts/init-bottom/wireguard"
 	@chmod 0755 init-bottom "$(INITRAMFS)/scripts/init-bottom/wireguard"
+	-@mkdir -p "$(DOCSDIR)/examples"
+	@chmod -R 0755 "$(DOCSDIR)"
+	@cp -v config "$(DOCSDIR)/examples/config"
+	@chmod 0644 "$(DOCSDIR)/examples/config"
 	@echo "Done."
 	@echo
 	@echo "Setup $(TARGETDIR)/config and run:"
@@ -45,6 +52,7 @@ uninstall: remove_legacy
 	@rm -f "$(INITRAMFS)/hooks/wireguard"
 	@rm -f "$(INITRAMFS)/scripts/init-premount/wireguard"
 	@rm -f "$(INITRAMFS)/scripts/init-bottom/wireguard"
+	@rm -rf "$(DOCSDIR)"
 	@echo
 	@echo "Done."
 

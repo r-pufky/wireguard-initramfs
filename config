@@ -4,7 +4,7 @@
 #       and compromised/untrusted. Boot wireguard network should be
 #       **different** & untrusted; versus the network used after booting.
 #       Always restrict ports and access on the wireguard server.
-#       
+#
 # Be sure to test wireguard config with a running system before setting
 # options. See: https://manpages.debian.org/unstable/wireguard-tools/wg.8.en.html
 #

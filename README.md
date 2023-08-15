@@ -14,7 +14,7 @@ managed node, with the ability to prevent all local access.
 ## Requirements
 Working knowledge of Linux. Understanding of networking and Wireguard.
 
-1. [Debian Bullseye](https://debian.org) (any version with wireguard support should
+1. [Debian Bullseye/Bookworm](https://debian.org) (any version with wireguard support should
    work, but untested).
 1. [Wireguard](https://www.wireguard.com/) installed, configured and in a
    "known working" state.

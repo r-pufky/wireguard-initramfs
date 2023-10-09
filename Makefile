@@ -26,6 +26,8 @@ install: remove_legacy
 	@mkdir -p "$(TARGETDIR)"
 	@touch "$(TARGETDIR)/private_key"
 	@chmod 0600 "$(TARGETDIR)/private_key"
+	@touch "$(TARGETDIR)/pre_shared_key"
+	@chmod 0600 "$(TARGETDIR)/pre_shared_key"
 	@cp -vn config "$(TARGETDIR)/config"
 	@chmod 0644 "$(TARGETDIR)/config"
 	@cp -v hooks "$(INITRAMFS)/hooks/wireguard"

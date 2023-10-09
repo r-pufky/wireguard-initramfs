@@ -25,6 +25,9 @@ INTERFACE_ADDR=172.31.255.10/32
 # Peer public key (server's public key).
 PEER_PUBLIC_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+# Pre shared key (optional: leave blank to disable).
+PRE_SHARED_KEY=/etc/wireguard-initramfs/pre_shared_key
+
 # IP:PORT of the peer (server); any reachable IP/DNS.
 PEER_ENDPOINT=wg.example.com:51820
 

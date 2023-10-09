@@ -27,6 +27,10 @@ if [ ! -s "${CLIENT_PRIVATE_KEYFILE}" ]; then
   echo "Wireguard client private key required. Missing: ${CLIENT_PRIVATE_KEYFILE}"
   return 1
 fi
+if [ ! -z ${PRE_SHARED_KEY} ] && [ ! -s "${PRE_SHARED_KEY}" ]; then
+  echo "Wireguard client pre shared key required. Missing: ${PRE_SHARED_KEY}"
+  return 1
+fi
 
 # Copy latest versions of shared objects needed for DNS resolution
 for so in $(ldconfig -p | sed -nr 's/^\s*libnss_files\.so\.[0-9]+\s.*=>\s*//p'); do
@@ -40,6 +44,9 @@ done
 mkdir -p -- "${DESTDIR}/etc/wireguard"
 cp -p "${CONFIG}" "${DESTDIR}/etc/wireguard"
 cp -p "${CLIENT_PRIVATE_KEYFILE}" "${DESTDIR}/etc/wireguard/private_key"
+if [ ! -z ${PRE_SHARED_KEY} ]; then                                                      │
+  cp -p "${PRE_SHARED_KEY}" "${DESTDIR}/etc/wireguard/pre_shared_key"                    │
+fi
 
 # Add modules and wireguard exec
 manual_add_modules wireguard

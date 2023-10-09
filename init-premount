@@ -46,6 +46,11 @@ if [ -z ${PEER_PUBLIC_KEY} ]; then
   return 1
 fi
 
+if [ ! -z ${PRE_SHARED_KEY} ] && [ ! -s "/etc/wireguard/pre_shared_key" ]; then
+  log_failure_msg 'Pre shared key is not defined'
+  return 1
+fi
+
 if [ -z ${PEER_ENDPOINT} ]; then
   log_failure_msg 'Peer endpoint is not defined'
   return 1
@@ -78,12 +83,23 @@ for adapter in /run/net-*.conf; do
 done
 
 ip link add dev ${INTERFACE} type wireguard
+
+if [ -z ${PRE_SHARED_KEY} ]; then
 /sbin/wg set ${INTERFACE} \
     private-key /etc/wireguard/private_key \
     peer ${PEER_PUBLIC_KEY} \
     endpoint ${PEER_ENDPOINT} \
     persistent-keepalive ${PERSISTENT_KEEPALIVES} \
     allowed-ips ${ALLOWED_IPS}
+else
+/sbin/wg set ${INTERFACE} \
+    private-key /etc/wireguard/private_key \
+    preshared-key /etc/wireguard/pre_shared_key \
+    peer ${PEER_PUBLIC_KEY} \
+    endpoint ${PEER_ENDPOINT} \
+    persistent-keepalive ${PERSISTENT_KEEPALIVES} \
+    allowed-ips ${ALLOWED_IPS}
+fi
 ip addr add ${INTERFACE_ADDR} dev ${INTERFACE}
 ip link set ${INTERFACE} up
 ip route add ${ALLOWED_IPS} dev ${INTERFACE}

@@ -44,8 +44,8 @@ done
 mkdir -p -- "${DESTDIR}/etc/wireguard"
 cp -p "${CONFIG}" "${DESTDIR}/etc/wireguard"
 cp -p "${CLIENT_PRIVATE_KEYFILE}" "${DESTDIR}/etc/wireguard/private_key"
-if [ ! -z ${PRE_SHARED_KEY} ]; then                                                      │
-  cp -p "${PRE_SHARED_KEY}" "${DESTDIR}/etc/wireguard/pre_shared_key"                    │
+if [ ! -z ${PRE_SHARED_KEY} ]; then
+  cp -p "${PRE_SHARED_KEY}" "${DESTDIR}/etc/wireguard/pre_shared_key"
 fi
 
 # Add modules and wireguard exec

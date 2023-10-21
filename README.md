@@ -14,8 +14,8 @@ managed node, with the ability to prevent all local access.
 ## Requirements
 Working knowledge of Linux. Understanding of networking and Wireguard.
 
-1. [Debian Bullseye/Bookworm](https://debian.org) (any version with wireguard support should
-   work, but untested).
+1. [Debian Bullseye/Bookworm](https://debian.org) (any version with wireguard
+   support should work, but untested).
 1. [Wireguard](https://www.wireguard.com/) installed, configured and in a
    "known working" state.
 
@@ -27,12 +27,12 @@ Grab the latest release, untarball, and install.
 ```bash
 wget https://github.com/r-pufky/wireguard-initramfs/archive/refs/tags/{RELEASE}.tar.gz
 tar xvf {RELASE}.tar.gz
-cd wireguard-initramfs-2021-07-04; make install
+cd wireguard-initramfs-{RELEASE}; make install
 ```
 
 ### Configure
 See comments in `/etc/wireguard-initramfs/config`. Be sure to set the private
-key as well.
+and preshared keys (optional) as well.
 
 Refer to [wg set man page](https://man7.org/linux/man-pages/man8/wg.8.html) for
 additional information.
@@ -61,7 +61,8 @@ before SSH connections are attempted.
 
 ### Requirements
 
-1. [Dropbear](https://github.com/mkj/dropbear) installed, configured and in a "known working" state.
+1. [Dropbear](https://github.com/mkj/dropbear) installed, configured and in a
+   "known working" state.
 
 ### Configure
 Set dropbear to use *all* network interfaces to ensure remote unlocks work over

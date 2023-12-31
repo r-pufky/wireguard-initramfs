@@ -1,6 +1,7 @@
 #!/bin/sh
 
 PREREQ="udev"
+OPTIONAL_PARAMS=""
 
 prereqs() {
   echo "${PREREQ}"
@@ -46,18 +47,8 @@ if [ -z ${PEER_PUBLIC_KEY} ]; then
   return 1
 fi
 
-if [ ! -z ${PRE_SHARED_KEY} ] && [ ! -s "/etc/wireguard/pre_shared_key" ]; then
-  log_failure_msg 'Pre shared key is not defined'
-  return 1
-fi
-
 if [ -z ${PEER_ENDPOINT} ]; then
   log_failure_msg 'Peer endpoint is not defined'
-  return 1
-fi
-
-if [ -z ${PERSISTENT_KEEPALIVES} ]; then
-  log_failure_msg 'Persistent keepalive is not defined'
   return 1
 fi
 
@@ -82,24 +73,24 @@ for adapter in /run/net-*.conf; do
   fi
 done
 
+# Build enumerate all the optional parameters if they exist
+if [ ! -z "${PERSISTENT_KEEPALIVES}" ]; then
+	OPTIONAL_PARAMS=" persistent-keepalive ${PERSISTENT_KEEPALIVES}"
+fi
+
+if [ -n "${PRE_SHARED_KEY}" ] && [ -s "/etc/wireguard/pre_shared_key" ]; then
+	OPTIONAL_PARAMS="${OPTIONAL_PARAMS} preshared-key /etc/wireguard/pre_shared_key"
+fi
+
 ip link add dev ${INTERFACE} type wireguard
 
-if [ -z ${PRE_SHARED_KEY} ]; then
 /sbin/wg set ${INTERFACE} \
     private-key /etc/wireguard/private_key \
     peer ${PEER_PUBLIC_KEY} \
     endpoint ${PEER_ENDPOINT} \
-    persistent-keepalive ${PERSISTENT_KEEPALIVES} \
+    ${OPTIONAL_PARAMS} \
     allowed-ips ${ALLOWED_IPS}
-else
-/sbin/wg set ${INTERFACE} \
-    private-key /etc/wireguard/private_key \
-    peer ${PEER_PUBLIC_KEY} \
-    preshared-key /etc/wireguard/pre_shared_key \
-    endpoint ${PEER_ENDPOINT} \
-    persistent-keepalive ${PERSISTENT_KEEPALIVES} \
-    allowed-ips ${ALLOWED_IPS}
-fi
+
 ip addr add ${INTERFACE_ADDR} dev ${INTERFACE}
 ip link set ${INTERFACE} up
 ip route add ${ALLOWED_IPS} dev ${INTERFACE}

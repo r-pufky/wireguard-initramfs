@@ -101,6 +101,11 @@ else
     allowed-ips ${ALLOWED_IPS}
 fi
 ip addr add ${INTERFACE_ADDR} dev ${INTERFACE}
-ip link set ${INTERFACE} up
+
+if [ -n "${WG_MTU}" ]; then
+	MTU="mtu ${WG_MTU}"
+fi
+
+ip link set ${INTERFACE} ${MTU} up
 ip route add ${ALLOWED_IPS} dev ${INTERFACE}
 log_end_msg

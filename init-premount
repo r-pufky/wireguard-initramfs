@@ -1,6 +1,7 @@
 #!/bin/sh
 
 PREREQ="udev"
+MTU=""
 
 prereqs() {
   echo "${PREREQ}"

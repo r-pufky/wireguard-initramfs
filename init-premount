@@ -2,6 +2,7 @@
 
 PREREQ="udev"
 OPTIONAL_PARAMS=""
+ALLOWED_IPS_DUALSTACK=""
 
 prereqs() {
   echo "${PREREQ}"
@@ -37,8 +38,18 @@ if [ -z ${INTERFACE} ]; then
   return 1
 fi
 
-if [ -z ${INTERFACE_ADDR} ]; then
-  log_failure_msg 'Interface address is not defined'
+if [ -z "${INTERFACE_ADDR}" ] && [ -z "${INTERFACE_ADDR_6}" ]; then
+  log_failure_msg 'Interface IPv4 or IPv6 address is not defined'
+  return 1
+fi
+
+if [ -n "${INTERFACE_ADDR}" ] && [ -z "${ALLOWED_IPS}" ]; then
+  log_failure_msg 'Allowed IPv4 IPs is not defined, even though IPv4 address is set'
+  return 1
+fi
+
+if [ -n "${INTERFACE_ADDR_6}" ] && [ -z "${ALLOWED_IPS_6}" ]; then
+  log_failure_msg 'Allowed IPv6 IPs is not defined, even though IPv6 address is set'
   return 1
 fi
 
@@ -49,11 +60,6 @@ fi
 
 if [ -z ${PEER_ENDPOINT} ]; then
   log_failure_msg 'Peer endpoint is not defined'
-  return 1
-fi
-
-if [ -z ${ALLOWED_IPS} ]; then
-  log_failure_msg 'Allowed IPs is not defined'
   return 1
 fi
 log_end_msg
@@ -73,7 +79,7 @@ for adapter in /run/net-*.conf; do
   fi
 done
 
-# Build enumerate all the optional parameters if they exist
+# Enumerate all the optional parameters if they exist
 if [ ! -z "${PERSISTENT_KEEPALIVES}" ]; then
 	OPTIONAL_PARAMS=" persistent-keepalive ${PERSISTENT_KEEPALIVES}"
 fi
@@ -84,14 +90,37 @@ fi
 
 ip link add dev ${INTERFACE} type wireguard
 
+if [ -n "${ALLOWED_IPS}" ]; then
+  ALLOWED_IPS_DUALSTACK="allowed-ips ${ALLOWED_IPS}"
+fi
+
+if [ -n "${ALLOWED_IPS_6}" ]; then
+  ALLOWED_IPS_DUALSTACK="${ALLOWED_IPS_DUALSTACK} allowed-ips ${ALLOWED_IPS_6}"
+fi
+
 /sbin/wg set ${INTERFACE} \
     private-key /etc/wireguard/private_key \
     peer ${PEER_PUBLIC_KEY} \
     endpoint ${PEER_ENDPOINT} \
     ${OPTIONAL_PARAMS} \
-    allowed-ips ${ALLOWED_IPS}
+    ${ALLOWED_IPS_DUALSTACK}
 
-ip addr add ${INTERFACE_ADDR} dev ${INTERFACE}
+if [ -n "${INTERFACE_ADDR}" ]; then
+  ip -4 addr add ${INTERFACE_ADDR} dev ${INTERFACE}
+fi
+
+if [ -n "${INTERFACE_ADDR_6}" ]; then
+  ip -6 addr add ${INTERFACE_ADDR_6} dev ${INTERFACE}
+fi
+
 ip link set ${INTERFACE} up
-ip route add ${ALLOWED_IPS} dev ${INTERFACE}
+
+if [ -n "${ALLOWED_IPS}" ]; then
+  ip -4 route add ${ALLOWED_IPS} dev ${INTERFACE}
+fi
+
+if [ -n "${ALLOWED_IPS_6}" ]; then
+  ip -6 route add ${ALLOWED_IPS_6} dev ${INTERFACE}
+fi
+
 log_end_msg

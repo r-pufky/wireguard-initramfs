@@ -21,7 +21,7 @@ INTERFACE=example_vpn
 
 # CIDR wireguard interface address.
 INTERFACE_ADDR=172.31.255.10/32
-INTERFACE_ADDR_6=fc10:4:0::2/64
+INTERFACE_ADDR_6=fc10:4:0::2/128
 
 # Peer public key (server's public key).
 PEER_PUBLIC_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -40,4 +40,4 @@ PERSISTENT_KEEPALIVES=25
 
 # Allowed IP's (CIDR) on wireguard; for boot this should be the peer (server).
 ALLOWED_IPS=172.31.255.254/32
-ALLOWED_IPS_6=fc10:4:0::0/64
+ALLOWED_IPS_6=fc10:4:0::1/128

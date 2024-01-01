@@ -3,6 +3,7 @@
 PREREQ="udev"
 OPTIONAL_PARAMS=""
 ALLOWED_IPS_DUALSTACK=""
+MTU=""
 
 prereqs() {
   echo "${PREREQ}"

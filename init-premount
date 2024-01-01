@@ -74,16 +74,16 @@ touch /etc/resolv.conf
 for adapter in /run/net-*.conf; do
   . "${adapter}"
   if [ ! -z "${IPV4DNS0}" ]; then
-    echo nameserver "${IPV4DNS0}" >> /etc/resolv.conf
+    echo "nameserver ${IPV4DNS0}" >> /etc/resolv.conf
   fi
-  if [ ! -z "${IPV4DNS1}" ]; then;
-    echo nameserver "${IPV4DNS1}" >> /etc/resolv.conf
+  if [ ! -z "${IPV4DNS1}" ]; then
+    echo "nameserver ${IPV4DNS1}" >> /etc/resolv.conf
   fi
   if [ ! -z "${IPV6DNS0}" ]; then
-    echo nameserver "${IPV6DNS0}" >> /etc/resolv.conf
+    echo "nameserver ${IPV6DNS0}" >> /etc/resolv.conf
   fi
   if [ ! -z "${IPV6DNS1}" ]; then
-    echo nameserver "${IPV6DNS1}" >> /etc/resolv.conf
+    echo "nameserver ${IPV6DNS1}" >> /etc/resolv.conf
   fi
 done
 

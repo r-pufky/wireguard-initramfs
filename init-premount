@@ -71,11 +71,16 @@ touch /etc/resolv.conf
 for adapter in /run/net-*.conf; do
   . "${adapter}"
   if [ ! -z "${IPV4DNS0}" ]; then
-    echo nameserver "${IPV4DNS0}" >> /etc/resolv.conf
-    echo nameserver "${IPV4DNS1}" >> /etc/resolv.conf
+    echo "nameserver ${IPV4DNS0}" >> /etc/resolv.conf
+  fi
+  if [ ! -z "${IPV4DNS1}" ]; then
+    echo "nameserver ${IPV4DNS1}" >> /etc/resolv.conf
   fi
   if [ ! -z "${IPV6DNS0}" ]; then
-    echo nameserver "${IPV6DNS0}" >> /etc/resolv.conf
+    echo "nameserver ${IPV6DNS0}" >> /etc/resolv.conf
+  fi
+  if [ ! -z "${IPV4DNS1}" ]; then
+     echo "nameserver ${IPV4DNS1}" >> /etc/resolv.conf
   fi
 done
 
@@ -113,7 +118,11 @@ if [ -n "${INTERFACE_ADDR_6}" ]; then
   ip -6 addr add ${INTERFACE_ADDR_6} dev ${INTERFACE}
 fi
 
-ip link set ${INTERFACE} up
+if [ -n "${WG_MTU}" ]; then
+  MTU="mtu ${WG_MTU}"
+fi
+
+ip link set ${INTERFACE} ${MTU} up
 
 if [ -n "${ALLOWED_IPS}" ]; then
   ip -4 route add ${ALLOWED_IPS} dev ${INTERFACE}

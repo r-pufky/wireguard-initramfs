@@ -17,6 +17,8 @@ esac
 
 . /etc/wireguard/config
 
-log_begin_msg 'Stopping wireguard boot network'
-ip link delete dev ${INTERFACE}
+if [ -z "${PERSISTENT}" ]; then
+  log_begin_msg 'Stopping wireguard boot network'
+  ip link delete dev ${INTERFACE}
+fi
 log_end_msg

@@ -41,3 +41,9 @@ PERSISTENT_KEEPALIVES=25
 # Allowed IP's (CIDR) on wireguard; for boot this should be the peer (server).
 ALLOWED_IPS=172.31.255.254/32
 ALLOWED_IPS_6=fc10:4:0::0/64
+
+# Set this if you need to force a different MTU than wireguard automatically sets
+#WG_MTU=1200
+
+# If PERSISTENT is set to any non-null value, the wireguard interface will be left up after initramfs exits
+# PERSISTENT=Y

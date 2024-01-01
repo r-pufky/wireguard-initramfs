@@ -41,4 +41,4 @@ PERSISTENT_KEEPALIVES=25
 ALLOWED_IPS=172.31.255.254/32
 
 # Set this if you need to force a different MTU than wireguard automatically sets
-WG_MTU=1200
+#WG_MTU=1200

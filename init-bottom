@@ -18,5 +18,5 @@ esac
 . /etc/wireguard/config
 
 log_begin_msg 'Stopping wireguard boot network'
-ip link delete dev ${INTERFACE}
+ip link delete dev "${INTERFACE}"
 log_end_msg

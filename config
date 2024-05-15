@@ -29,7 +29,8 @@ PEER_PUBLIC_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 PRE_SHARED_KEY=/etc/wireguard-initramfs/pre_shared_key
 
 # IP:PORT of the peer (server); any reachable IP/DNS.
-PEER_ENDPOINT=wg.example.com:51820
+PEER_PORT=51820
+PEER_ENDPOINT=wg.example.com:"${PEER_PORT}"
 
 # Client Private key. Specify location of file containing only the private key.
 CLIENT_PRIVATE_KEYFILE=/etc/wireguard-initramfs/private_key
@@ -37,5 +38,5 @@ CLIENT_PRIVATE_KEYFILE=/etc/wireguard-initramfs/private_key
 # Persistent Keepalive. Required to ensure connection for non-exposed ports.
 PERSISTENT_KEEPALIVES=25
 
-# Allowed IP's (CIDR) on wireguard; for boot this should be the peer (server).
+# Allowed IP addresses (CIDR) on wireguard; for boot this should be the peer (server).
 ALLOWED_IPS=172.31.255.254/32

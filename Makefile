@@ -4,6 +4,7 @@ TARGETDIR = $(DESTDIR)/etc/wireguard-initramfs
 INITRAMFS = $(DESTDIR)/etc/initramfs-tools
 DOCSDIR   = $(DESTDIR)/usr/local/share/docs/wireguard-initramfs
 
+.PHONY: help 
 help:
 	@echo "USAGE:"
 	@echo "  make install"
@@ -17,8 +18,7 @@ help:
 	@echo "Example configuration located at: $(DOCSDIR)"
 	@echo
 
-.PHONY: help 
-
+.PHONY: install
 install: remove_legacy
 	@if ! [ "$(shell id -u)" = 0 ]; then echo "You must be root to perform this action."; exit 1; fi
 	@echo "Installing wireguard-initramfs ..."
@@ -48,6 +48,7 @@ install: remove_legacy
 	@echo
 	@echo "Done."
 
+.PHONY: uninstall
 uninstall: remove_legacy
 	@if ! [ "$(shell id -u)" = 0 ]; then echo "You must be root to perform this action."; exit 1; fi
 	@echo "Uninstalling wireguard-initramfs ..."
@@ -58,6 +59,7 @@ uninstall: remove_legacy
 	@echo
 	@echo "Done."
 
+.PHONY: remove_legacy
 remove_legacy:
 	@rm -f "/usr/share/initramfs-tools/hooks/wireguard"
 	@rm -f "/usr/share/initramfs-tools/scripts/init-premount/wireguard"

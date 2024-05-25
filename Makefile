@@ -18,9 +18,12 @@ help:
 	@echo "Example configuration located at: $(DOCSDIR)"
 	@echo
 
-.PHONY: install
-install: remove_legacy
+.PHONY: root_check
+root_check:
 	@if ! [ "$(shell id -u)" = 0 ]; then echo "You must be root to perform this action."; exit 1; fi
+
+.PHONY: install
+install: root_check remove_legacy
 	@echo "Installing wireguard-initramfs ..."
 	@apt update && apt install initramfs-tools
 	@mkdir -p "$(TARGETDIR)"
@@ -49,8 +52,7 @@ install: remove_legacy
 	@echo "Done."
 
 .PHONY: uninstall
-uninstall: remove_legacy
-	@if ! [ "$(shell id -u)" = 0 ]; then echo "You must be root to perform this action."; exit 1; fi
+uninstall: root_check remove_legacy
 	@echo "Uninstalling wireguard-initramfs ..."
 	@rm -f "$(INITRAMFS)/hooks/wireguard"
 	@rm -f "$(INITRAMFS)/scripts/init-premount/wireguard"
@@ -60,7 +62,7 @@ uninstall: remove_legacy
 	@echo "Done."
 
 .PHONY: remove_legacy
-remove_legacy:
+remove_legacy: root_check
 	@rm -f "/usr/share/initramfs-tools/hooks/wireguard"
 	@rm -f "/usr/share/initramfs-tools/scripts/init-premount/wireguard"
 	@rm -f "/usr/share/initramfs-tools/scripts/init-bottom/wireguard"

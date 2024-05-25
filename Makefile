@@ -1,8 +1,8 @@
 # Makefile for wireguard initramfs boot.
 
-TARGETDIR = /etc/wireguard-initramfs
-INITRAMFS = /etc/initramfs-tools
-DOCSDIR   = /usr/local/share/docs/wireguard-initramfs
+TARGETDIR = $(DESTDIR)/etc/wireguard-initramfs
+INITRAMFS = $(DESTDIR)/etc/initramfs-tools
+DOCSDIR   = $(DESTDIR)/usr/local/share/docs/wireguard-initramfs
 
 help:
 	@echo "USAGE:"

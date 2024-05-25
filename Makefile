@@ -35,16 +35,10 @@ install_files:
 	@chmod 0600 "$(TARGETDIR)/pre_shared_key"
 	@cp -vn config "$(TARGETDIR)/config"
 	@chmod 0644 "$(TARGETDIR)/config"
-	@cp -v hooks "$(INITRAMFS)/hooks/wireguard"
-	@chmod 0755 hooks "$(INITRAMFS)/hooks/wireguard"
-	@cp -v init-premount "$(INITRAMFS)/scripts/init-premount/wireguard"
-	@chmod 0755 init-premount "$(INITRAMFS)/scripts/init-premount/wireguard"
-	@cp -v init-bottom "$(INITRAMFS)/scripts/init-bottom/wireguard"
-	@chmod 0755 init-bottom "$(INITRAMFS)/scripts/init-bottom/wireguard"
-	-@mkdir -p "$(DOCSDIR)/examples"
-	@chmod -R 0755 "$(DOCSDIR)"
-	@cp -v config "$(DOCSDIR)/examples/config"
-	@chmod 0644 "$(DOCSDIR)/examples/config"
+	@install -vD hooks "$(INITRAMFS)/hooks/wireguard"
+	@install -vD init-premount "$(INITRAMFS)/scripts/init-premount/wireguard"
+	@install -vD init-bottom "$(INITRAMFS)/scripts/init-bottom/wireguard"
+	@install -vD -m0644 config "$(DOCSDIR)/examples/config"
 
 .PHONY: install
 install: root_check remove_legacy install_deps

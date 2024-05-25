@@ -22,10 +22,12 @@ help:
 root_check:
 	@if ! [ "$(shell id -u)" = 0 ]; then echo "You must be root to perform this action."; exit 1; fi
 
-.PHONY: install
-install: root_check remove_legacy
-	@echo "Installing wireguard-initramfs ..."
+.PHONY: install_deps
+install_deps: root_check
 	@apt update && apt install initramfs-tools
+
+.PHONY: install_files
+install_files:
 	@mkdir -p "$(TARGETDIR)"
 	@touch "$(TARGETDIR)/private_key"
 	@chmod 0600 "$(TARGETDIR)/private_key"
@@ -43,6 +45,11 @@ install: root_check remove_legacy
 	@chmod -R 0755 "$(DOCSDIR)"
 	@cp -v config "$(DOCSDIR)/examples/config"
 	@chmod 0644 "$(DOCSDIR)/examples/config"
+
+.PHONY: install
+install: root_check remove_legacy install_deps
+	@echo "Installing wireguard-initramfs ..."
+	+$(MAKE) install_files
 	@echo "Done."
 	@echo
 	@echo "Setup $(TARGETDIR)/config and run:"

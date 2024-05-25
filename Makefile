@@ -17,7 +17,7 @@ help:
 	@echo "Example configuration located at: $(DOCSDIR)"
 	@echo
 
-.PHONY: help Makefile
+.PHONY: help 
 
 install: remove_legacy
 	@if ! [ "$(shell id -u)" = 0 ]; then echo "You must be root to perform this action."; exit 1; fi

@@ -15,7 +15,7 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
-CONFIG='/etc/wireguard-initramfs/config'
+CONFIG="/etc/wireguard/config"
 
 # Validate and copy configuration to initramfs
 if [ ! -s "${CONFIG}" ]; then
@@ -23,18 +23,8 @@ if [ ! -s "${CONFIG}" ]; then
   return 1
 fi
 
-# shellcheck source=/etc/wireguard-initramfs/config
+# shellcheck source="/etc/wireguard/config"
 . "${CONFIG}"
-
-if [ ! -s "${CLIENT_PRIVATE_KEYFILE}" ]; then
-  echo "Wireguard client private key required. Missing: ${CLIENT_PRIVATE_KEYFILE}"
-  return 1
-fi
-
-if [ -n "${PRE_SHARED_KEY}" ] && [ ! -s "${PRE_SHARED_KEY}" ]; then
-  echo "Wireguard client pre shared key required. Missing: ${PRE_SHARED_KEY}"
-  return 1
-fi
 
 # Copy latest versions of shared objects needed for DNS resolution
 for so in $(ldconfig -p | sed -nr 's/^\s*libnss_files\.so\.[0-9]+\s.*=>\s*//p'); do
@@ -44,13 +34,10 @@ for so in $(ldconfig -p | sed -nr 's/^\s*libnss_dns\.so\.[0-9]+\s.*=>\s*//p'); d
   copy_exec "${so}"
 done
 
-# Copy config and host keys
+# Copy config and host keys into initramfs structure
 mkdir -p -- "${DESTDIR}/etc/wireguard"
-cp -p "${CONFIG}" "${DESTDIR}/etc/wireguard"
-cp -p "${CLIENT_PRIVATE_KEYFILE}" "${DESTDIR}/etc/wireguard/private_key"
-if [ -n "${PRE_SHARED_KEY}" ]; then
-  cp -p "${PRE_SHARED_KEY}" "${DESTDIR}/etc/wireguard/pre_shared_key"
-fi
+cp -p "${CONFIG}" "${DESTDIR}/etc/wireguard/config"
+cp -p "/etc/wireguard/${INTERFACE}.conf" "${DESTDIR}/etc/wireguard/${INTERFACE}.conf"
 
 # Add modules and wireguard exec
 manual_add_modules wireguard

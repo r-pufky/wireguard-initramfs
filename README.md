@@ -22,28 +22,47 @@ Working knowledge of Linux. Understanding of networking and Wireguard.
 2. [Wireguard](https://www.wireguard.com/) installed, configured and in a
    "known working" state.
 
-## Install
+## Getting started
 
-Installation is automated via make. Download, extract contents, and install on
-target machine.
+Installation is supported via make.
+Download, extract and configure contents, and install on target machine.
 
-Grab the latest release, untarball, and install.
+### Download
+
+Grab the latest release, untarball.
 
 ```bash
 RELEASE=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/r-pufky/wireguard-initramfs/releases/latest | tr "/" "\n" | tail -n 1)
 wget https://github.com/r-pufky/wireguard-initramfs/archive/refs/tags/"${RELEASE}".tar.gz
 tar xvf "${RELEASE}".tar.gz
 cd wireguard-initramfs-"${RELEASE}"
-make install
 ```
 
 ### Configure
 
-See comments in `/etc/wireguard-initramfs/config`. Be sure to set the private
-and preshared keys (optional) as well.
+To configure wireguard-initramfs, follow these steps:
+1. **Locate the configuration files:** Open and modify the files in the 
+   `configs` folder.
+2. **Set the variables:** The `config` file contains variables based on your 
+   working wireguard connection. 
+3. **Set the private and preshared keys:** The separate files contain 
+   options for setting the private and preshared keys.
+   While it is necessary to set the private key, setting the preshared key 
+   is optional.
+4. Make sure to set these according to your network configuration.
 
 Refer to [wg set man page](https://man7.org/linux/man-pages/man8/wg.8.html) for
 additional information.
+
+Based on these files from the `configs` folder the `make install` step builds  
+a named configuration file into `/etc/wireguard`.
+That will be used and copy into the initramfs.
+
+### Installation
+
+```bash
+make install
+```
 
 :warning:
 
@@ -55,8 +74,7 @@ port blocking is used for remote unlocking.
 Rebuild initramfs to use:
 
 ```bash
-update-initramfs -u
-update-grub
+make build_initramfs
 reboot
 ```
 

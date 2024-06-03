@@ -1,0 +1,130 @@
+#!/bin/sh
+
+PREREQ="udev"
+
+prereqs() {
+  echo "${PREREQ}"
+}
+
+case "${1}" in
+  prereqs)
+    prereqs
+    exit 0
+  ;;
+esac
+
+. /scripts/functions
+
+# define own functions
+convert_date_web() {
+  year=$(echo "$1" | cut -d' ' -f 4)
+  month=$(echo "$1" | cut -d' ' -f 3)
+  day=$(echo "$1" | cut -d' ' -f 2)
+  datetime=$(echo "$1" | cut -d' ' -f 5)
+
+  hour=$(echo "${datetime}" | cut -d':' -f 1)
+  minutes=$(echo "${datetime}" | cut -d':' -f 2)
+  seconds=$(echo "${datetime}" | cut -d':' -f 3)
+
+  case $month in
+  Jan) month_number=01 ;;
+  Feb) month_number=02 ;;
+  Mar) month_number=03 ;;
+  Apr) month_number=04 ;;
+  May) month_number=05 ;;
+  Jun) month_number=06 ;;
+  Jul) month_number=07 ;;
+  Aug) month_number=08 ;;
+  Sep) month_number=09 ;;
+  Oct) month_number=10 ;;
+  Nov) month_number=11 ;;
+  Dec) month_number=12 ;;
+  esac
+
+  echo "${year}${month_number}${day}${hour}${minutes}.${seconds}"
+}
+
+log_begin_msg 'check dependencies'
+if [ ! -e /sbin/wg ]; then
+  log_failure_msg 'Wireguard binary not found; skipping start'
+  exit 0
+fi
+
+if [ ! -e /etc/wireguard/config ]; then
+  log_failure_msg 'Wireguard config not found; skipping start'
+  exit 0
+fi
+log_end_msg
+
+log_begin_msg 'enable networking'
+# Ensure networking is started (idempotent) and setup DNS.
+configure_networking
+
+touch /etc/resolv.conf
+
+for adapter in /run/net-*.conf; do
+  # shellcheck source=/run/net-*.conf
+  . "${adapter}"
+
+  if [ -n "${IPV4DNS0}" ]; then
+    echo "nameserver ${IPV4DNS0}" >> /etc/resolv.conf
+  fi
+
+  if [ -n "${IPV4DNS1}" ]; then
+    echo "nameserver ${IPV4DNS1}" >> /etc/resolv.conf
+  fi
+
+  if [ -n "${IPV6DNS0}" ]; then
+    echo "nameserver ${IPV6DNS0}" >> /etc/resolv.conf
+  fi
+
+  if [ -n "${IPV6DNS1}" ]; then
+    echo "nameserver ${IPV6DNS1}" >> /etc/resolv.conf
+  fi
+done
+log_end_msg
+
+log_begin_msg 'Loading wireguard config'
+. /etc/wireguard/config
+
+if [ -z "${INTERFACE}" ]; then
+  log_failure_msg 'Interface name is not defined'
+  return 1
+fi
+
+if [ -z "${INTERFACE_ADDR}" ]; then
+  log_failure_msg 'Interface address is not defined'
+  return 1
+fi
+
+if [ -z "${ALLOWED_IPS}" ]; then
+  log_failure_msg 'Allowed IPs is not defined'
+  return 1
+fi
+log_end_msg
+
+log_begin_msg 'set local date time'
+date_from_web=$(wget -qSO- "${DATETIME_URL}" 2>&1 | sed -n 's/^ *Date: *//p' | head -n 1)
+date_web_year=$(echo "${date_from_web}" | cut -d' ' -f 4)
+date_local_year=$(date | rev | cut -d' ' -f 1 | rev)
+
+#NOTE: possible trouble in turn of the year or lower difference than years
+diff=$((date_web_year - date_local_year))
+if [ "${diff}" -ne 0 ]; then
+  date_to_set=$(convert_date_web "${date_from_web}")
+  log_warning_msg "set date to: ${date_to_set}"
+  date -s "${date_to_set}" > /dev/null
+else
+  log_success_msg "no need to set new date"
+fi
+log_end_msg
+
+log_begin_msg 'Initialize and starting wireguard'
+ip link add dev "${INTERFACE}" type wireguard
+
+wg setconf "${INTERFACE}" /etc/wireguard/"${INTERFACE}".conf
+
+ip addr add "${INTERFACE_ADDR}" dev "${INTERFACE}"
+ip link set "${INTERFACE}" up
+ip route add "${ALLOWED_IPS}" dev "${INTERFACE}"
+log_end_msg

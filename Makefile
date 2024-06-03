@@ -1,6 +1,6 @@
 # Makefile for wireguard initramfs boot.
 
-INITRAMFS = /etc/initramfs-tools
+INITRAMFS = $(DESTDIR)/etc/initramfs-tools
 
 .PHONY: help 
 help:

@@ -20,23 +20,23 @@
 INTERFACE=example_vpn
 
 # CIDR wireguard interface address.
-INTERFACE_ADDR=172.31.255.10/32
+INTERFACE_ADDR_IP=172.31.255.10
+INTERFACE_ADDR_SUFFIX=32
+INTERFACE_ADDR="${INTERFACE_ADDR_IP}/${INTERFACE_ADDR_SUFFIX}"
 
 # Peer public key (server's public key).
 PEER_PUBLIC_KEY=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-# Pre shared key (optional: leave blank to disable).
-PRE_SHARED_KEY=/etc/wireguard-initramfs/pre_shared_key
-
 # IP:PORT of the peer (server); any reachable IP/DNS.
 PEER_PORT=51820
-PEER_ENDPOINT=wg.example.com:"${PEER_PORT}"
-
-# Client Private key. Specify location of file containing only the private key.
-CLIENT_PRIVATE_KEYFILE=/etc/wireguard-initramfs/private_key
+PEER_URL=wg.example.com
+PEER_ENDPOINT="${PEER_URL}:${PEER_PORT}"
 
 # Persistent Keepalive. Required to ensure connection for non-exposed ports.
 PERSISTENT_KEEPALIVES=25
 
 # Allowed IP addresses (CIDR) on wireguard; for boot this should be the peer (server).
 ALLOWED_IPS=172.31.255.254/32
+
+# url to send a web request to set the local datetime
+DATETIME_URL=google.com

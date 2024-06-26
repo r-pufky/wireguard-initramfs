@@ -104,6 +104,17 @@ wireguard first. Then restrict to the wireguard network once it is working:
 DROPBEAR_OPTIONS='... -p 172.31.255.10:22 ...'
 ```
 
+## Legacy compatibility
+
+If you are a user using a previous release, such as the one dated 
+2023-10-21, you can update your current projects by running
+
+```bash
+sudo bash scripts/migrate_project_structure.sh
+```
+
+This should keep your project structure and contents intact.
+
 ## Bug / Patches / Contributions?
 
 All are welcome, please submit a pull request or open a bug!

@@ -53,11 +53,6 @@ if [ -z "${ALLOWED_IPS}" ]; then
   exit 1
 fi
 
-if [ -z "${DATETIME_URL}" ]; then
-  echo "Please set the missing url due to get the datetime from the web"
-  exit 1
-fi
-
 CLIENT_PRIVATE_KEYFILE="${CONFIG_PATH}/private_key"
 if [ ! -s "${CLIENT_PRIVATE_KEYFILE}" ]; then
   echo "Wireguard client private key required. Missing: ${CLIENT_PRIVATE_KEYFILE}"
@@ -82,6 +77,10 @@ PersistentKeepalive = ${PERSISTENT_KEEPALIVES}
 EOL
 
 # add optional parameter
+if [ -z "${DATETIME_URL}" ]; then
+  echo "INFO: DATETIME_URL not set"
+fi
+
 PRE_SHARED_KEY="${CONFIG_PATH}/pre_shared_key"
 if [ -s "${PRE_SHARED_KEY}" ]; then
   PRE_SHARED_KEY_CONTENT=$(cat "${PRE_SHARED_KEY}")

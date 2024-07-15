@@ -18,7 +18,7 @@ root_check:
 
 .PHONY: install_dependencies_debian
 install_dependencies_debian: root_check
-	@apt update && apt install wireguard initramfs-tools
+	@apt update && apt install wget wireguard initramfs-tools
 
 .PHONY: install_files
 install_files:

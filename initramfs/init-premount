@@ -124,21 +124,23 @@ if [ -z "${ALLOWED_IPS}" ]; then
 fi
 log_end_msg
 
-log_begin_msg 'set local date time'
-date_from_web=$(wget -qSO- "${DATETIME_URL}" 2>&1 | sed -n 's/^ *Date: *//p' | head -n 1)
+if [ -n "${DATETIME_URL}" ]; then
+  log_begin_msg 'set local date time'
+  date_from_web=$(wget -qSO- "${DATETIME_URL}" 2>&1 | sed -n 's/^ *Date: *//p' | head -n 1)
 
-date_web_comp=$(date -d "$(convert_web_date_compare "${date_from_web}")" +%s)
-date_local_comp=$(date +%s)
+  date_web_comp=$(date -d "$(convert_web_date_compare "${date_from_web}")" +%s)
+  date_local_comp=$(date +%s)
 
-diff=$((date_web_comp - date_local_comp))
-if [ "${diff}" -ne 0 ]; then
-  date_to_set=$(convert_web_date "${date_from_web}")
-  log_warning_msg "set date to: ${date_to_set}"
-  date -s "${date_to_set}" > /dev/null
-else
-  log_success_msg "no need to set new date"
+  diff=$((date_web_comp - date_local_comp))
+  if [ "${diff}" -ne 0 ]; then
+    date_to_set=$(convert_web_date "${date_from_web}")
+    log_warning_msg "set date to: ${date_to_set}"
+    date -s "${date_to_set}" > /dev/null
+  else
+    log_success_msg "no need to set new date"
+  fi
+  log_end_msg
 fi
-log_end_msg
 
 log_begin_msg 'Initialize and starting wireguard'
 ip link add dev "${INTERFACE}" type wireguard

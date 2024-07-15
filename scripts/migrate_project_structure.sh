@@ -60,7 +60,8 @@ PERSISTENT_KEEPALIVES=25
 # Allowed IP addresses (CIDR) on wireguard; for boot this should be the peer (server).
 ALLOWED_IPS=172.31.255.254/32
 
-# url to send a web request to set the local datetime
+# optional: url to send a web request to set the local datetime
+# if left blank, this step is skipped
 DATETIME_URL=google.com
 EOL
 

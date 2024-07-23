@@ -41,3 +41,7 @@ ALLOWED_IPS=172.31.255.254/32
 # optional: url to send a web request to set the local datetime
 # if left blank, this step is skipped
 DATETIME_URL=google.com
+
+# Ensure the WireGuard interface persists after the initramfs exits by setting
+# PERSISTENT to any value (enabling the feature)
+PERSISTENT=

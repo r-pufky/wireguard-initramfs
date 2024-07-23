@@ -77,14 +77,14 @@ PersistentKeepalive = ${PERSISTENT_KEEPALIVES}
 EOL
 
 # add optional parameter
-if [ -z "${DATETIME_URL}" ]; then
-  echo "INFO: DATETIME_URL not set"
-fi
-
 PRE_SHARED_KEY="${CONFIG_PATH}/pre_shared_key"
 if [ -s "${PRE_SHARED_KEY}" ]; then
   PRE_SHARED_KEY_CONTENT=$(cat "${PRE_SHARED_KEY}")
 	echo "PresharedKey = ${PRE_SHARED_KEY_CONTENT}" >> "${CONFIG_FILE}"
+fi
+
+if [ -z "${DATETIME_URL}" ]; then
+  echo "INFO: DATETIME_URL not set"
 fi
 
 exit 0

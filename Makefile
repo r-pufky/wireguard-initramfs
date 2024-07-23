@@ -49,11 +49,11 @@ remove_legacy: root_check
 	@rm -f "/usr/share/initramfs-tools/scripts/init-premount/wireguard"
 	@rm -f "/usr/share/initramfs-tools/scripts/init-bottom/wireguard"
 
-.PHONY: root_check build_initramfs_rpi
-build_initramfs:
+.PHONY: build_initramfs
+build_initramfs: root_check
 	update-initramfs -u && update-grub
 
-.PHONY: root_check build_initramfs_rpi
-build_initramfs_rpi:
+.PHONY: build_initramfs_rpi
+build_initramfs_rpi: root_check
 	cp /boot/firmware/config-"$(shell uname -r)" /boot
 	mkinitramfs -o /boot/firmware/initramfs.gz "$(shell uname -r)"

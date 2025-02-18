@@ -65,6 +65,29 @@ convert_web_date_compare() {
   echo "${year}-${month_number}-${day} ${hour}:${minutes}:${seconds}"
 }
 
+generate_resolv_conf() {
+  for adapter in /run/net-*.conf; do
+    # shellcheck source=/run/net-*.conf
+    . "${adapter}"
+
+    if [ -n "${IPV4DNS0}" ]; then
+      echo "nameserver ${IPV4DNS0}"
+    fi
+
+    if [ -n "${IPV4DNS1}" ]; then
+      echo "nameserver ${IPV4DNS1}"
+    fi
+
+    if [ -n "${IPV6DNS0}" ]; then
+      echo "nameserver ${IPV6DNS0}"
+    fi
+
+    if [ -n "${IPV6DNS1}" ]; then
+      echo "nameserver ${IPV6DNS1}"
+    fi
+  done
+}
+
 log_begin_msg 'check dependencies'
 if [ ! -e /sbin/wg ]; then
   log_failure_msg 'Wireguard binary not found; skipping start'
@@ -81,28 +104,9 @@ log_begin_msg 'enable networking'
 # Ensure networking is started (idempotent) and setup DNS.
 configure_networking
 
-touch /etc/resolv.conf
-
-for adapter in /run/net-*.conf; do
-  # shellcheck source=/run/net-*.conf
-  . "${adapter}"
-
-  if [ -n "${IPV4DNS0}" ]; then
-    echo "nameserver ${IPV4DNS0}" >> /etc/resolv.conf
-  fi
-
-  if [ -n "${IPV4DNS1}" ]; then
-    echo "nameserver ${IPV4DNS1}" >> /etc/resolv.conf
-  fi
-
-  if [ -n "${IPV6DNS0}" ]; then
-    echo "nameserver ${IPV6DNS0}" >> /etc/resolv.conf
-  fi
-
-  if [ -n "${IPV6DNS1}" ]; then
-    echo "nameserver ${IPV6DNS1}" >> /etc/resolv.conf
-  fi
-done
+if [ ! -e /etc/resolv.conf ]; then
+  generate_resolv_conf > /etc/resolv.conf
+fi
 log_end_msg
 
 log_begin_msg 'Loading wireguard config'

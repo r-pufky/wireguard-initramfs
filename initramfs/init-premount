@@ -1,6 +1,7 @@
 #!/bin/sh
 
 PREREQ="udev"
+MTU=""
 
 prereqs() {
   echo "${PREREQ}"
@@ -152,6 +153,12 @@ ip link add dev "${INTERFACE}" type wireguard
 wg setconf "${INTERFACE}" /etc/wireguard/"${INTERFACE}".conf
 
 ip addr add "${INTERFACE_ADDR}" dev "${INTERFACE}"
-ip link set "${INTERFACE}" up
+
+if [ -n "${MTU}" ]; then
+  ip link set "${INTERFACE}" "mtu ${MTU}" up
+else
+  ip link set "${INTERFACE}" up
+fi
+
 ip route add "${ALLOWED_IPS}" dev "${INTERFACE}"
 log_end_msg

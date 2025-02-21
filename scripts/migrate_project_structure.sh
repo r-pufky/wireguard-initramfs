@@ -15,8 +15,8 @@ cat "${target_dir}/private_key" > "${config_dir}/private_key"
 cat "${target_dir}/pre_shared_key" > "${config_dir}/pre_shared_key"
 source "${target_dir}/config"
 
-tmp_INTERFACE_ADDR_IP=$(echo "${INTERFACE_ADDR}" | cut -d/ -f 1)
-tmp_INTERFACE_ADDR_SUFFIX=$(echo "${INTERFACE_ADDR}" | cut -d/ -f 2)
+tmp_INTERFACE_ADDR_IPV4=$(echo "${INTERFACE_ADDR}" | cut -d/ -f 1)
+tmp_INTERFACE_ADDR_IPV4_SUFFIX=$(echo "${INTERFACE_ADDR}" | cut -d/ -f 2)
 tmo_PEER_URL=$(echo "${PEER_ENDPOINT}" | cut -d: -f 1)
 
 cat >"${config_dir}/config" <<EOL
@@ -28,7 +28,9 @@ cat >"${config_dir}/config" <<EOL
 #       Always restrict ports and access on the wireguard server.
 #
 # Be sure to test wireguard config with a running system before setting
-# options. See: https://manpages.debian.org/unstable/wireguard-tools/wg.8.en.html
+# options. At least one interface must be defined.
+#
+# See: https://manpages.debian.org/unstable/wireguard-tools/wg.8.en.html
 #
 # Restricting dropbear connections to **only** wireguard:
 # * Confirm wireguard/dropbear work without restriction first.
@@ -42,9 +44,14 @@ cat >"${config_dir}/config" <<EOL
 INTERFACE=${INTERFACE}
 
 # CIDR wireguard interface address.
-INTERFACE_ADDR_IP=${tmp_INTERFACE_ADDR_IP}
-INTERFACE_ADDR_SUFFIX=${tmp_INTERFACE_ADDR_SUFFIX}
-INTERFACE_ADDR="\${INTERFACE_ADDR_IP}/\${INTERFACE_ADDR_SUFFIX}"
+INTERFACE_ADDR_IPV4=${tmp_INTERFACE_ADDR_IPV4}
+INTERFACE_ADDR_IPV4_SUFFIX=${tmp_INTERFACE_ADDR_IPV4_SUFFIX}
+INTERFACE_ADDR_IPV4_CIDR="\${INTERFACE_ADDR_IPV4}/\${INTERFACE_ADDR_IPV4_SUFFIX}"
+
+# CIDR wireguard IPv6 interface address.
+INTERFACE_ADDR_IPV6=
+INTERFACE_ADDR_IPV6_SUFFIX=
+INTERFACE_ADDR_IPV6_CIDR="\${INTERFACE_ADDR_IPV6}/\${INTERFACE_ADDR_IPV6_SUFFIX}"
 
 # Peer public key (server's public key).
 PEER_PUBLIC_KEY=${PEER_PUBLIC_KEY}
@@ -57,12 +64,24 @@ PEER_ENDPOINT="\${PEER_URL}:\${PEER_PORT}"
 # Persistent Keepalive. Required to ensure connection for non-exposed ports.
 PERSISTENT_KEEPALIVES=25
 
-# Allowed IP addresses (CIDR) on wireguard; for boot this should be the peer (server).
-ALLOWED_IPS=172.31.255.254/32
+# AllowedIPs — a comma-separated list of IP addresses with CIDR masks from
+# which incoming traffic for this peer is allowed and to which outgoing traffic
+# for this peer is directed. The catch-all 0.0.0.0/0 may be specified for
+# matching all IPv4 addresses, and ::/0 may be specified for matching all IPv6
+# addresses.
+ALLOWED_IPS_IPV4=172.31.255.254/32
+ALLOWED_IPS_IPV6=
+
+# optional: set custom wireguard MTU.
+MTU=
 
 # optional: url to send a web request to set the local datetime
-# if left blank, this step is skipped
+# if left blank, this step is skipped.
 DATETIME_URL=google.com
+
+# Ensure the WireGuard interface persists after the initramfs exits by setting
+# PERSISTENT to any value (enabling the feature).
+PERSISTENT=
 EOL
 
 rm "${docs_dir}/examples/config"

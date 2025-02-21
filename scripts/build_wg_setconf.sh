@@ -21,11 +21,11 @@ if [ -z "${INTERFACE}" ]; then
   exit 1
 fi
 
-if [ -z "${INTERFACE_ADDR_IP}" ]; then
+if [ -z "${INTERFACE_ADDR_IPV4}" && -z "${INTERFACE_ADDR_IPV6}" ]; then
   echo "Please set the missing interface ip address"
   exit 1
 fi
-if [ -z "${INTERFACE_ADDR_SUFFIX}" ]; then
+if [ -z "${INTERFACE_ADDR_IPV4_SUFFIX}" && -z "${INTERFACE_ADDR_IPV6_SUFFIX}" ]; then
   echo "Please set the missing interface ip address suffix"
   exit 1
 fi
@@ -48,7 +48,7 @@ if [ -z "${PERSISTENT_KEEPALIVES}" ]; then
   exit 1
 fi
 
-if [ -z "${ALLOWED_IPS}" ]; then
+if [ -z "${ALLOWED_IPS_IPV4}" && -z "${ALLOWED_IPS_IPV6}" ]; then
   echo "Please set the missing allowed ip addresses"
   exit 1
 fi
@@ -65,14 +65,16 @@ CLIENT_PRIVATE_KEYFILE_CONTENT=$(cat "${CLIENT_PRIVATE_KEYFILE}")
 CONFIG_FILE="/etc/wireguard/${INTERFACE}.conf"
 cat > "${CONFIG_FILE}" <<EOL
 [Interface]
-#Address = ${INTERFACE_ADDR}
+#Address = ${INTERFACE_ADDR_IPV4}
+#Address = ${INTERFACE_ADDR_IPV6}
 PrivateKey = ${CLIENT_PRIVATE_KEYFILE_CONTENT}
 ListenPort = ${PEER_PORT}
 
 [Peer]
 PublicKey = ${PEER_PUBLIC_KEY}
 Endpoint = ${PEER_ENDPOINT}
-AllowedIPs = ${ALLOWED_IPS}
+AllowedIPs = ${ALLOWED_IPS_IPV4}
+AllowedIPs = ${ALLOWED_IPS_IPV6}
 PersistentKeepalive = ${PERSISTENT_KEEPALIVES}
 EOL
 

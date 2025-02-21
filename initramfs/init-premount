@@ -1,7 +1,6 @@
 #!/bin/sh
 
 PREREQ="udev"
-MTU=""
 
 prereqs() {
   echo "${PREREQ}"
@@ -118,12 +117,12 @@ if [ -z "${INTERFACE}" ]; then
   return 1
 fi
 
-if [ -z "${INTERFACE_ADDR}" ]; then
+if [ -z "${INTERFACE_ADDR_IPV4}" && [ -z "${INTERFACE_ADDR_IPV6}" ]; then
   log_failure_msg 'Interface address is not defined'
   return 1
 fi
 
-if [ -z "${ALLOWED_IPS}" ]; then
+if [ -z "${ALLOWED_IPS_IPV4}" && -z "${ALLOWED_IPS_IPV6}" ]; then
   log_failure_msg 'Allowed IPs is not defined'
   return 1
 fi
@@ -152,7 +151,13 @@ ip link add dev "${INTERFACE}" type wireguard
 
 wg setconf "${INTERFACE}" /etc/wireguard/"${INTERFACE}".conf
 
-ip addr add "${INTERFACE_ADDR}" dev "${INTERFACE}"
+if [ -n "${INTERFACE_ADDR_IPV4}" ]; then
+  ip -4 addr add "${INTERFACE_ADDR_IPV4}" dev "${INTERFACE}"
+fi
+
+if [ -n "${INTERFACE_ADDR_IPV6}" ]; then
+  ip -6 addr add "${INTERFACE_ADDR_IPV6}" dev "${INTERFACE}"
+fi
 
 if [ -n "${MTU}" ]; then
   ip link set "${INTERFACE}" "mtu ${MTU}" up
@@ -160,5 +165,12 @@ else
   ip link set "${INTERFACE}" up
 fi
 
-ip route add "${ALLOWED_IPS}" dev "${INTERFACE}"
+if [ -n "${ALLOWED_IPS_IPV4}" ]; then
+  ip -4 route add "${ALLOWED_IPS_IPV4}" dev "${INTERFACE}"
+fi
+
+if [ -n "${ALLOWED_IPS_IPV6}" ]; then
+  ip -6 route add "${ALLOWED_IPS_IPV6}" dev "${INTERFACE}"
+fi
+
 log_end_msg

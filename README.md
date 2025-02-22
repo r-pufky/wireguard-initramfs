@@ -10,7 +10,7 @@ exist that can reach the wireguard server endpoint.
 
 Normal dropbear connections and DNS resolution can be used to find wireguard
 endpoints.
-This essentially enables the creation of a fully encrypted remote-managed 
+This essentially enables the creation of a fully encrypted remote-managed
 node, with the ability to prevent all local access.
 
 ## Requirements
@@ -41,22 +41,18 @@ cd wireguard-initramfs-"${RELEASE}"
 ### Configure
 
 To configure wireguard-initramfs, follow these steps:
-1. **Locate the configuration files:** Open and modify the files in the 
+1. **Locate the configuration files:** Open and modify the files in the
    `configs` folder.
-2. **Set the variables:** The `config` file contains variables based on your 
-   working wireguard connection. 
-3. **Set the private and preshared keys:** The separate files contain 
-   options for setting the private and preshared keys.
-   While it is necessary to set the private key, setting the preshared key 
-   is optional.
-4. Make sure to set these according to your network configuration.
+2. **Set the variables:** The `initramfs` file contains variables based on your
+   working wireguard connection.
+3. Make sure to set these according to your network configuration.
 
 Refer to [wg set man page](https://man7.org/linux/man-pages/man8/wg.8.html) for
 additional information.
 
-Based on these files from the `configs` folder the `make install` step builds  
-a named configuration file into `/etc/wireguard`.
-That will be used and copy into the initramfs.
+Based on these files from the `configs` folder the `make install` step builds
+a named configuration file into `/etc/wireguard/initramfs`. That will be used
+and copied into initramfs along with the specified wireguard adapter config.
 
 ### Installation
 
@@ -98,7 +94,7 @@ before SSH connections are attempted.
 Set dropbear to use *all* network interfaces to ensure remote unlocks work over
 wireguard first. Then restrict to the wireguard network once it is working:
 
-`/etc/dropbear-initramfs/config`
+`/etc/dropbear/initramfs/config`
 
 ```bash
 DROPBEAR_OPTIONS='... -p 172.31.255.10:22 ...'
@@ -106,14 +102,15 @@ DROPBEAR_OPTIONS='... -p 172.31.255.10:22 ...'
 
 ## Legacy compatibility
 
-If you are a user using a previous release, such as the one dated 
+If you are a user using a previous release, such as the one dated
 2023-10-21, you can update your current projects by running
 
 ```bash
 sudo bash scripts/migrate_project_structure.sh
 ```
 
-This should keep your project structure and contents intact.
+This should keep your project structure and contents intact; however manual
+**validation** is required as full wireguard adapter configs are now supported.
 
 ## Bug / Patches / Contributions?
 

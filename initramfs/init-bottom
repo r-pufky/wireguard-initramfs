@@ -15,7 +15,7 @@ esac
 
 . /scripts/functions
 
-. /etc/wireguard/config
+. /etc/wireguard/initramfs
 
 if [ -z "${PERSISTENT}" ]; then
   log_begin_msg 'Stopping wireguard boot network'

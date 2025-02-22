@@ -2,7 +2,7 @@
 
 INITRAMFS = $(DESTDIR)/etc/initramfs-tools
 
-.PHONY: help 
+.PHONY: help
 help:
 	@echo "USAGE:"
 	@echo "  make install"

@@ -15,7 +15,7 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
-CONFIG="/etc/wireguard/config"
+CONFIG="/etc/wireguard/initramfs"
 
 # Validate and copy configuration to initramfs
 if [ ! -s "${CONFIG}" ]; then
@@ -23,7 +23,7 @@ if [ ! -s "${CONFIG}" ]; then
   return 1
 fi
 
-# shellcheck source="/etc/wireguard/config"
+# shellcheck source="/etc/wireguard/initramfs" - load variables.
 . "${CONFIG}"
 
 # Copy latest versions of shared objects needed for DNS resolution
@@ -36,8 +36,8 @@ done
 
 # Copy config and host keys into initramfs structure
 mkdir -p -- "${DESTDIR}/etc/wireguard"
-cp -p "${CONFIG}" "${DESTDIR}/etc/wireguard/config"
-cp -p "/etc/wireguard/${INTERFACE}.conf" "${DESTDIR}/etc/wireguard/${INTERFACE}.conf"
+cp -p "${CONFIG}" "${DESTDIR}/etc/wireguard/initramfs"
+cp -p "${ADAPTER}" "${DESTDIR}${ADAPTER}"
 
 # Add modules and wireguard exec
 manual_add_modules wireguard

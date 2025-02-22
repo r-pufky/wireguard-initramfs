@@ -94,7 +94,7 @@ if [ ! -e /sbin/wg ]; then
   exit 0
 fi
 
-if [ ! -e /etc/wireguard/config ]; then
+if [ ! -e /etc/wireguard/initramfs ]; then
   log_failure_msg 'Wireguard config not found; skipping start'
   exit 0
 fi
@@ -110,19 +110,19 @@ fi
 log_end_msg
 
 log_begin_msg 'Loading wireguard config'
-. /etc/wireguard/config
+. /etc/wireguard/initramfs
 
 if [ -z "${INTERFACE}" ]; then
   log_failure_msg 'Interface name is not defined'
   return 1
 fi
 
-if [ -z "${INTERFACE_ADDR_IPV4}" && [ -z "${INTERFACE_ADDR_IPV6}" ]; then
+if [ -z "${INTERFACE_ADDR_IPV4}" ] && [ -z "${INTERFACE_ADDR_IPV6}" ]; then
   log_failure_msg 'Interface address is not defined'
   return 1
 fi
 
-if [ -z "${ALLOWED_IPS_IPV4}" && -z "${ALLOWED_IPS_IPV6}" ]; then
+if [ -z "${PEER_ALLOWED_IPS_IPV4}" && -z "${PEER_ALLOWED_IPS_IPV6}" ]; then
   log_failure_msg 'Allowed IPs is not defined'
   return 1
 fi
@@ -159,18 +159,18 @@ if [ -n "${INTERFACE_ADDR_IPV6}" ]; then
   ip -6 addr add "${INTERFACE_ADDR_IPV6}" dev "${INTERFACE}"
 fi
 
-if [ -n "${MTU}" ]; then
-  ip link set "${INTERFACE}" "mtu ${MTU}" up
+if [ -n "${INTERFACE_MTU}" ]; then
+  ip link set "${INTERFACE}" "mtu ${INTERFACE_MTU}" up
 else
   ip link set "${INTERFACE}" up
 fi
 
-if [ -n "${ALLOWED_IPS_IPV4}" ]; then
-  ip -4 route add "${ALLOWED_IPS_IPV4}" dev "${INTERFACE}"
+if [ -n "${PEER_ALLOWED_IPS_IPV4}" ]; then
+  ip -4 route add "${PEER_ALLOWED_IPS_IPV4}" dev "${INTERFACE}"
 fi
 
-if [ -n "${ALLOWED_IPS_IPV6}" ]; then
-  ip -6 route add "${ALLOWED_IPS_IPV6}" dev "${INTERFACE}"
+if [ -n "${PEER_ALLOWED_IPS_IPV6}" ]; then
+  ip -6 route add "${PEER_ALLOWED_IPS_IPV6}" dev "${INTERFACE}"
 fi
 
 log_end_msg

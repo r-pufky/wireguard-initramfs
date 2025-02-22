@@ -29,7 +29,6 @@ install_files:
 .PHONY: install
 install: root_check remove_legacy install_dependencies_debian
 	@echo "Installing wireguard-initramfs ..."
-	@chmod 0755 "./scripts/build_wg_setconf.sh"
 	@./scripts/build_wg_setconf.sh $@ || exit 1
 	@echo "... created wireguard configuration file."
 	+$(MAKE) install_files

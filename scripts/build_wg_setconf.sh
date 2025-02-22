@@ -21,12 +21,16 @@ if [ -z "${INTERFACE}" ]; then
   exit 1
 fi
 
-if [ -z "${INTERFACE_ADDR_IPV4}" && -z "${INTERFACE_ADDR_IPV6}" ]; then
+if [ -z "${INTERFACE_ADDR_IPV4}" ] && -z [ "${INTERFACE_ADDR_IPV6}" ]; then
   echo "Please set the missing interface ip address"
   exit 1
 fi
-if [ -z "${INTERFACE_ADDR_IPV4_SUFFIX}" && -z "${INTERFACE_ADDR_IPV6_SUFFIX}" ]; then
+if [ -z "${INTERFACE_ADDR_IPV4_SUFFIX}" ] && -z [ "${INTERFACE_ADDR_IPV6_SUFFIX}" ]; then
   echo "Please set the missing interface ip address suffix"
+  exit 1
+fi
+if [ -z "${INTERFACE_PORT}" ]; then
+  echo "Please set the missing interface port"
   exit 1
 fi
 
@@ -48,7 +52,7 @@ if [ -z "${PERSISTENT_KEEPALIVES}" ]; then
   exit 1
 fi
 
-if [ -z "${ALLOWED_IPS_IPV4}" && -z "${ALLOWED_IPS_IPV6}" ]; then
+if [ -z "${ALLOWED_IPS_IPV4}" ] && -z [ "${ALLOWED_IPS_IPV6}" ]; then
   echo "Please set the missing allowed ip addresses"
   exit 1
 fi
@@ -59,22 +63,39 @@ if [ ! -s "${CLIENT_PRIVATE_KEYFILE}" ]; then
   exit 1
 fi
 
+# Set dual-stack interface addresses.
+if [ -n "${INTERFACE_ADDR_IPV4}" ]; then
+  WG_INTER_ADDRESS="Address = ${INTERFACE_ADDR_IPV4}"
+fi
+
+if [ -n "${INTERFACE_ADDR_IPV6}" ]; then
+  # Enable newlines on here document processing.
+  WG_INTER_ADDRESS=$(printf "${WG_INTER_ADDRESS}\nAddress = ${INTERFACE_ADDR_IPV6}")
+fi
+
+# Separate lists only needed for interface setup, converge.
+if [ -n "${ALLOWED_IPS_IPV4}" ]; then
+  PEER_ALLOWED_IPS="${ALLOWED_IPS_IPV4}"
+fi
+
+if [ -n "${ALLOWED_IPS_IPV6}" ]; then
+  PEER_ALLOWED_IPS="${CLIENT_ALLOWED_IPS},${ALLOWED_IPS_IPV6}"
+fi
+
 # build wireguard config file
 CLIENT_PRIVATE_KEYFILE_CONTENT=$(cat "${CLIENT_PRIVATE_KEYFILE}")
 
 CONFIG_FILE="/etc/wireguard/${INTERFACE}.conf"
 cat > "${CONFIG_FILE}" <<EOL
 [Interface]
-#Address = ${INTERFACE_ADDR_IPV4}
-#Address = ${INTERFACE_ADDR_IPV6}
+${WG_INTER_ADDRESS}
 PrivateKey = ${CLIENT_PRIVATE_KEYFILE_CONTENT}
-ListenPort = ${PEER_PORT}
+ListenPort = ${INTERFACE_PORT}
 
 [Peer]
 PublicKey = ${PEER_PUBLIC_KEY}
 Endpoint = ${PEER_ENDPOINT}
-AllowedIPs = ${ALLOWED_IPS_IPV4}
-AllowedIPs = ${ALLOWED_IPS_IPV6}
+AllowedIPs = ${PEER_ALLOWED_IPS}
 PersistentKeepalive = ${PERSISTENT_KEEPALIVES}
 EOL
 

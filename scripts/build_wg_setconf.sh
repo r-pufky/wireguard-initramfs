@@ -79,7 +79,7 @@ if [ -n "${ALLOWED_IPS_IPV4}" ]; then
 fi
 
 if [ -n "${ALLOWED_IPS_IPV6}" ]; then
-  PEER_ALLOWED_IPS="${CLIENT_ALLOWED_IPS},${ALLOWED_IPS_IPV6}"
+  PEER_ALLOWED_IPS="${PEER_ALLOWED_IPS},${ALLOWED_IPS_IPV6}"
 fi
 
 # build wireguard config file

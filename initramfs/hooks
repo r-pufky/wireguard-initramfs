@@ -1,10 +1,13 @@
 #!/bin/sh
 #
-# WG configuration file has restricted options compared to wg-quick config
-# files. Parse end-user wg-quick config file and write wg config. Store both
-# initramfs and wg configs to initramfs.
+# WG configuration file have restricted options compared to wg-quick config
+# files. Parse end-user wg-quick config file and write wg config (unsupported
+# options will cause wg to exit). Pass-through configuration if ENABLE_QUICK is
+# set and copy wg-quick, bash to initramfs.
 #
-# Use dash shell safe text processing.
+# Store both initramfs and wireguard adapter config to initramfs.
+#
+# Explicitly use dash shell for initramfs scripts.
 #
 # Reference:
 # * https://manpages.debian.org/unstable/wireguard-tools/wg.8.en.html#CONFIGURATION_FILE_FORMAT
@@ -68,7 +71,6 @@ fi
 # Parse AllowedIPs into primitive IPV4, IPV6 lists and sanity check.
 WG_ALLOWED_IPS=$(grep -i allowedips "${ADAPTER}" | sed 's/allowedips[ ]*=[ ]*//I;s/,/\ /g' | tr '\n' ' ')
 
-# test_two, comma list of ips need to parse.
 PEER_ALLOWED_IPS_IPV4=''
 PEER_ALLOWED_IPS_IPV6=''
 for cidr in ${WG_ALLOWED_IPS}; do
@@ -90,12 +92,16 @@ done
 for so in $(ldconfig -p | sed -nr 's/^\s*libnss_dns\.so\.[0-9]+\s.*=>\s*//p'); do
   copy_exec "${so}"
 done
-
-# Copy adapter and processed config to initramfs.
 mkdir -p -- "${DESTDIR}/etc/wireguard"
 
-# wg base adapter config.
-cat > "${DESTDIR}${ADAPTER}" <<EOL
+if [ -n "${ENABLE_QUICK}" ]; then
+  # Pass-through adapter config, add additional dependencies.
+  cp "${ADAPTER}" "${DESTDIR}${ADAPTER}"
+  copy_exec /usr/bin/bash
+  copy_exec /usr/bin/wg-quick /sbin
+else
+  # wg base adapter config.
+  cat > "${DESTDIR}${ADAPTER}" <<EOL
 [Interface]
 PrivateKey = ${WG_INTERFACE_KEY}
 ListenPort = ${WG_INTERFACE_LISTEN_PORT:-0}
@@ -104,11 +110,13 @@ FwMark = ${WG_INTERFACE_FW_MARK:-0}
 [Peer]
 ${WG_PEER_SECTIONS}
 EOL
+fi
 
 # initramfs config with required primitives to turn-up interfaces.
 cat > "${DESTDIR}/etc/wireguard/initramfs" <<EOL
 ADAPTER=${ADAPTER}
 DATETIME_URL=${DATETIME_URL}
+ENABLE_QUICK=${ENABLE_QUICK}
 PERSISTENT=${PERSISTENT}
 INTERFACE=${WG_INTERFACE_NAME}
 INTERFACE_MTU=${WG_INTERFACE_MTU}

@@ -44,6 +44,19 @@ cat >"${config_dir}/initramfs" <<EOL
 # complete wireguard configuration.
 ADAPTER=/etc/wireguard/initramfs.conf
 
+# Enable wg-quick for adapter management?
+#
+# wg is used by default and requires no additional dependencies, at the cost of
+# parsing the adapter configuration with a reduced set of options.
+#
+# Enabling will add wg-quick and bash to the initramfs package, enabling full
+# adapter configuration support at the cost of an additional 1.4M of space.
+#
+# Highly recommend only enabling if basic wg configuration does not meet needs.
+#
+# Any value enables.
+ENABLE_QUICK=
+
 # URL to send a web request to set the local datetime.
 #
 # Raspberry Pi's should enable this feature for wireguard-initramfs to work.
@@ -51,10 +64,10 @@ ADAPTER=/etc/wireguard/initramfs.conf
 # Skipped if blank.
 DATETIME_URL=google.com
 
-# Persist wireguard interface after initramfs exits? Any value enables.
+# Persist (do not down) interface after initramfs exits? Any value enables.
 PERSISTENT=
 
-# Enable debug logging (will expose key material). Any value enables.
+# Enable debug logging (will expose key material)? Any value enables.
 DEBUG=
 EOL
 

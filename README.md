@@ -40,19 +40,10 @@ cd wireguard-initramfs-"${RELEASE}"
 
 ### Configure
 
-To configure wireguard-initramfs, follow these steps:
-1. **Locate the configuration files:** Open and modify the files in the
-   `configs` folder.
-2. **Set the variables:** The `initramfs` file contains variables based on your
-   working wireguard connection.
-3. Make sure to set these according to your network configuration.
-
-Refer to [wg set man page](https://man7.org/linux/man-pages/man8/wg.8.html) for
+`configs/initramfs` file contains variables based on your working wireguard
+connection. Refer to
+[wg set man page](https://man7.org/linux/man-pages/man8/wg.8.html) for
 additional information.
-
-Based on these files from the `configs` folder the `make install` step builds
-a named configuration file into `/etc/wireguard/initramfs`. That will be used
-and copied into initramfs along with the specified wireguard adapter config.
 
 ### Installation
 
@@ -67,10 +58,12 @@ private key should be considered **untrusted/compromised**. It is highly
 recommended that a separate point-to-point wireguard network with proper
 port blocking is used for remote unlocking.
 
-Rebuild initramfs to use:
+Rebuild initramfs to use using any of these methods:
 
 ```bash
-make build_initramfs
+make build_initramfs  # Debian
+make build_initramfs_rpi`  # Raspberry Pi
+update-initramfs -u -k all && update-grub  # Manual build
 reboot
 ```
 

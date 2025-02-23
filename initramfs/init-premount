@@ -151,43 +151,42 @@ if [ -n "${DATETIME_URL}" ]; then
 fi
 
 log_begin_msg 'Initialize and starting wireguard'
-ip link add dev "${INTERFACE}" type wireguard
-wg setconf "${INTERFACE}" "${ADAPTER}"
-
-# Interface must be up before adding routes.
-if [ -n "${INTERFACE_MTU}" ]; then
-  echo "${INTERFACE_MTU}"
-  ip link set "mtu ${INTERFACE_MTU}" dev "${INTERFACE}" up
+if [ -n "${ENABLE_QUICK}" ]; then
+  wg-quick up "${ADAPTER}"
 else
-  ip link set "${INTERFACE}" up
-fi
+  ip link add dev "${INTERFACE}" type wireguard
+  wg setconf "${INTERFACE}" "${ADAPTER}"
 
-if [ -n "${INTERFACE_ADDR_IPV4}" ]; then
-  for i in ${INTERFACE_ADDR_IPV4}; do
-    echo "${i}"
-    ip -4 addr add "${i}" dev "${INTERFACE}"
-  done
-fi
+  # Interface must be up before adding routes.
+  if [ -n "${INTERFACE_MTU}" ]; then
+    ip link set "mtu ${INTERFACE_MTU}" dev "${INTERFACE}" up
+  else
+    ip link set "${INTERFACE}" up
+  fi
 
-if [ -n "${INTERFACE_ADDR_IPV6}" ]; then
-  for i in ${INTERFACE_ADDR_IPV6}; do
-    echo "${i}"
-    ip -6 addr add "${i}" dev "${INTERFACE}"
-  done
-fi
+  if [ -n "${INTERFACE_ADDR_IPV4}" ]; then
+    for i in ${INTERFACE_ADDR_IPV4}; do
+      ip -4 addr add "${i}" dev "${INTERFACE}"
+    done
+  fi
 
-if [ -n "${PEER_ALLOWED_IPS_IPV4}" ]; then
-  for i in ${PEER_ALLOWED_IPS_IPV4}; do
-    echo "${i}"
-    ip -4 route add "${i}" dev "${INTERFACE}"
-  done
-fi
+  if [ -n "${INTERFACE_ADDR_IPV6}" ]; then
+    for i in ${INTERFACE_ADDR_IPV6}; do
+      ip -6 addr add "${i}" dev "${INTERFACE}"
+    done
+  fi
 
-if [ -n "${PEER_ALLOWED_IPS_IPV6}" ]; then
-  for i in ${PEER_ALLOWED_IPS_IPV6}; do
-    echo "${i}"
-    ip -6 route add "${i}" dev "${INTERFACE}"
-  done
+  if [ -n "${PEER_ALLOWED_IPS_IPV4}" ]; then
+    for i in ${PEER_ALLOWED_IPS_IPV4}; do
+      ip -4 route add "${i}" dev "${INTERFACE}"
+    done
+  fi
+
+  if [ -n "${PEER_ALLOWED_IPS_IPV6}" ]; then
+    for i in ${PEER_ALLOWED_IPS_IPV6}; do
+      ip -6 route add "${i}" dev "${INTERFACE}"
+    done
+  fi
 fi
 
 log_end_msg

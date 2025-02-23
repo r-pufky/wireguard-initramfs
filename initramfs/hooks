@@ -1,4 +1,14 @@
 #!/bin/sh
+#
+# WG configuration file has restricted options compared to wg-quick config
+# files. Parse end-user wg-quick config file and write wg config. Store both
+# initramfs and wg configs to initramfs.
+#
+# Use dash shell safe text processing.
+#
+# Reference:
+# * https://manpages.debian.org/unstable/wireguard-tools/wg.8.en.html#CONFIGURATION_FILE_FORMAT
+# * https://manpages.debian.org/unstable/wireguard-tools/wg-quick.8.en.html#CONFIGURATION
 
 PREREQ=""
 
@@ -15,16 +25,63 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
-CONFIG="/etc/wireguard/initramfs"
+WG_INIT_CONFIG="/etc/wireguard/initramfs"
 
-# Validate and copy configuration to initramfs
-if [ ! -s "${CONFIG}" ]; then
-  echo "Wireguard initramfs config required. Missing: ${CONFIG}"
+if [ ! -s "$WG_INIT_CONFIG" ]; then
+  echo "Wireguard initramfs config required. Missing: $WG_INIT_CONFIG"
   return 1
 fi
+. "$WG_INIT_CONFIG"
 
-# shellcheck source="/etc/wireguard/initramfs" - load variables.
-. "${CONFIG}"
+if [ ! -s "${ADAPTER}" ]; then
+  echo "Wireguard adapter config not found. Missing: ${ADAPTER}"
+  exit 1
+fi
+if [ -z "${DATETIME_URL}" ]; then
+  echo "DATETIME_URL not set (may cause issues for Raspberry Pi devices)."
+fi
+
+# Parse interface section and sanity check.
+WG_INTERFACE_SECTION=$(sed -n '/^\[[Ii]/,/^\[/p' "${ADAPTER}")
+WG_PEER_SECTIONS=$(sed '/^\[[Ii]/,/^\[/d' "${ADAPTER}")
+WG_INTERFACE_NAME=$(basename "${ADAPTER}" | sed 's/[.].*$//')
+WG_INTERFACE_ADDRESSES=$(echo -n "$(echo "${WG_INTERFACE_SECTION}" | grep -i address | sed 's/address[ ]*=[ ]*//I')" | tr '\n' ' ')
+WG_INTERFACE_MTU=$(echo "${WG_INTERFACE_SECTION}" | grep -i mtu | sed 's/mtu[ ]*=[ ]*//I')
+WG_INTERFACE_FW_MARK=$(echo "${WG_INTERFACE_SECTION}" | grep -i fwmark | sed 's/fwmark[ ]*=[ ]*//I')
+WG_INTERFACE_LISTEN_PORT=$(echo "${WG_INTERFACE_SECTION}" | grep -i listenport | sed 's/listenport[ ]*=[ ]*//I')
+WG_INTERFACE_KEY=$(echo "${WG_INTERFACE_SECTION}" | grep -i privatekey | sed 's/privatekey[ ]*=[ ]*//I')
+
+INTERFACE_ADDR_IPV4=''
+INTERFACE_ADDR_IPV6=''
+for address in ${WG_INTERFACE_ADDRESSES}; do
+  case "${address}" in
+    *:*) INTERFACE_ADDR_IPV6="${INTERFACE_ADDR_IPV6}${address} " ;;
+    *) INTERFACE_ADDR_IPV4="${INTERFACE_ADDR_IPV4}${address} " ;;
+  esac
+done
+
+if [ -z "${INTERFACE_ADDR_IPV4}" ] && [ -z "${INTERFACE_ADDR_IPV6}" ]; then
+  echo "${ADAPTER}: [Interface] must have one 'Address' definition."
+  exit 1
+fi
+
+# Parse AllowedIPs into primitive IPV4, IPV6 lists and sanity check.
+WG_ALLOWED_IPS=$(grep -i allowedips "${ADAPTER}" | sed 's/allowedips[ ]*=[ ]*//I;s/,/\ /g' | tr '\n' ' ')
+
+# test_two, comma list of ips need to parse.
+PEER_ALLOWED_IPS_IPV4=''
+PEER_ALLOWED_IPS_IPV6=''
+for cidr in ${WG_ALLOWED_IPS}; do
+  case "${address}" in
+    *:*) PEER_ALLOWED_IPS_IPV6="${PEER_ALLOWED_IPS_IPV6}${cidr} " ;;
+    *) PEER_ALLOWED_IPS_IPV4="${PEER_ALLOWED_IPS_IPV4}${cidr} " ;;
+  esac
+done
+
+if [ -z "${PEER_ALLOWED_IPS_IPV4}" ] && [ -z "${PEER_ALLOWED_IPS_IPV6}" ]; then
+  echo "${ADAPTER}: [Peer] must have one 'AllowedIPs' definition."
+  exit 1
+fi
 
 # Copy latest versions of shared objects needed for DNS resolution
 for so in $(ldconfig -p | sed -nr 's/^\s*libnss_files\.so\.[0-9]+\s.*=>\s*//p'); do
@@ -34,10 +91,40 @@ for so in $(ldconfig -p | sed -nr 's/^\s*libnss_dns\.so\.[0-9]+\s.*=>\s*//p'); d
   copy_exec "${so}"
 done
 
-# Copy config and host keys into initramfs structure
+# Copy adapter and processed config to initramfs.
 mkdir -p -- "${DESTDIR}/etc/wireguard"
-cp -p "${CONFIG}" "${DESTDIR}/etc/wireguard/initramfs"
-cp -p "${ADAPTER}" "${DESTDIR}${ADAPTER}"
+
+# wg base adapter config.
+cat > "${DESTDIR}${ADAPTER}" <<EOL
+[Interface]
+PrivateKey = ${WG_INTERFACE_KEY}
+ListenPort = ${WG_INTERFACE_LISTEN_PORT:-0}
+FwMark = ${WG_INTERFACE_FW_MARK:-0}
+
+[Peer]
+${WG_PEER_SECTIONS}
+EOL
+
+# initramfs config with required primitives to turn-up interfaces.
+cat > "${DESTDIR}/etc/wireguard/initramfs" <<EOL
+ADAPTER=${ADAPTER}
+DATETIME_URL=${DATETIME_URL}
+PERSISTENT=${PERSISTENT}
+INTERFACE=${WG_INTERFACE_NAME}
+INTERFACE_MTU=${WG_INTERFACE_MTU}
+INTERFACE_ADDR_IPV4=$(echo "${INTERFACE_ADDR_IPV4}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+INTERFACE_ADDR_IPV6=$(echo "${INTERFACE_ADDR_IPV6}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+PEER_ALLOWED_IPS_IPV4=$(echo "${PEER_ALLOWED_IPS_IPV4}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+PEER_ALLOWED_IPS_IPV6=$(echo "${PEER_ALLOWED_IPS_IPV6}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+EOL
+
+if [ -n "${DEBUG}" ]; then
+  echo "${DESTDIR}${ADAPTER}"
+  cat "${DESTDIR}${ADAPTER}"
+  echo "-----"
+  echo "${DESTDIR}/etc/wireguard/initramfs"
+  cat "${DESTDIR}/etc/wireguard/initramfs"
+fi
 
 # Add modules and wireguard exec
 manual_add_modules wireguard

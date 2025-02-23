@@ -19,13 +19,9 @@
 # Reference:
 # * https://manpages.debian.org/unstable/wireguard-tools/wg-quick.8.en.html
 
-###############################################################################
-# InitRAMFS Configuration
-###############################################################################
-
-# Absolute path to wireguard adapter config for initramfs. This is copied to
-# initramfs and loaded after the hardware device is initialized to complete
-# wireguard configuration.
+# Absolute path to working wireguard adapter config for initramfs. This is
+# copied to initramfs and loaded after the hardware device is initialized to
+# complete wireguard configuration.
 ADAPTER=/etc/wireguard/initramfs.conf
 
 # URL to send a web request to set the local datetime.
@@ -38,38 +34,5 @@ DATETIME_URL=google.com
 # Persist wireguard interface after initramfs exits? Any value enables.
 PERSISTENT=
 
-###############################################################################
-# Adapter Configuration
-###############################################################################
-# During init the wireguard adapter must be initialized manually. Set values
-# from ADAPTER here; extracting the minimum information needed to stand-up the
-# adapter and load the rest of the wireguard configuration. These values must
-# match the values found in ADAPTER.
-#
-# Highly recommended to set PersistentKeepalives in ADAPTER to ensure
-# connections stay open for non-exposed ports.
-
-# Wireguard interface name. Required.
-INTERFACE=example_vpn
-
-# CIDR wireguard IPv4 interface address. Required IPv4, IPv6, or both.
-INTERFACE_ADDR_IPV4=172.31.255.10/32
-
-# CIDR wireguard IPv6 interface address. Required IPv4, IPv6, or both.
-INTERFACE_ADDR_IPV6=
-
-# Custom wireguard interface MTU. Default: empty (1420). Optional.
-INTERFACE_MTU=
-
-# Allowed IPs from peers.
-#
-# A comma-separated list of IP addresses with CIDR masks from which incoming
-# traffic for this peer is allowed and to which outgoing traffic for this peer
-# is directed. All traffic is blocked by default.
-#
-# * '0.0.0.0/0' match all IPv4 addresses.
-# * '::/0' match all IPv6 addresses.
-#
-# Required.
-PEER_ALLOWED_IPS_IPV4=172.31.255.254/32
-PEER_ALLOWED_IPS_IPV6=
+# Enable debug logging (will expose key material). Any value enables.
+DEBUG=

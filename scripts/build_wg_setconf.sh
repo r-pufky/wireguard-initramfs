@@ -23,21 +23,6 @@ if [ -z "${DATETIME_URL}" ]; then
   echo "DATETIME_URL not set (may cause issues for Raspberry Pi devices)."
 fi
 
-# TODO: use adapter and basename ${ADAPTER} .conf to parse interface name.
-if [ -z "${INTERFACE}" ]; then
-  echo "INTERFACE_NAME must be set."
-  exit 1
-fi
-if [ -z "${INTERFACE_ADDR_IPV4}" ] && [ -z "${INTERFACE_ADDR_IPV6}" ]; then
-  echo "INTERFACE_ADDR_IPV4 and/or INTERFACE_ADDR_IPV6 must be set."
-  exit 1
-fi
-
-if [ -z "${PEER_ALLOWED_IPS_IPV4}" ] && [ -z "${PEER_ALLOWED_IPS_IPV6}" ]; then
-  echo "PEER_ALLOWED_IPS_IPV4 and/or PEER_ALLOWED_IPS_IPV6 must be set."
-  exit 1
-fi
-
 cp "${WG_CONFIG}" "/etc/wireguard/initramfs"
 
 exit 0

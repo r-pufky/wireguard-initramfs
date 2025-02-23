@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Migrate 2023-10-21 installs to current format.
+# Migrate 2023-10-21 installs to current format, creating
+# /etc/wireguard/initramfs.conf adapter for the original config settings.
 
 if [ "$(id -u)" -ne 0 ]
   then echo "Please run as root"
@@ -15,10 +16,7 @@ config_dir="../configs"
 mkdir -p "${config_dir}"
 source "${target_dir}/config"
 
-tmp_INTERFACE_ADDR_IPV4=$(echo "${INTERFACE_ADDR}" | cut -d/ -f 1)
-tmp_INTERFACE_ADDR_IPV4_SUFFIX=$(echo "${INTERFACE_ADDR}" | cut -d/ -f 2)
-tmo_PEER_URL=$(echo "${PEER_ENDPOINT}" | cut -d: -f 1)
-
+# Write new initramfs config.
 cat >"${config_dir}/initramfs" <<EOL
 # Wireguard initramfs configuration.
 #
@@ -35,18 +33,15 @@ cat >"${config_dir}/initramfs" <<EOL
 # * Set dropbear listen address to only wireguard interface (INTERFACE_ADDR_*)
 #   address:
 #
-#   /etc/dropbear-initramfs/config
+#   /etc/dropbear/initramfs/config
 #     DROPBEAR_OPTIONS='... -p 172.31.255.10:22 ...'
 #
 # Reference:
 # * https://manpages.debian.org/unstable/wireguard-tools/wg-quick.8.en.html
 
-###############################################################################
-# InitRAMFS Configuration
-###############################################################################
-
-# Absolute path to wireguard adapter config for initramfs. This is copied to
-# initramfs and loaded after the hardware device is initialized.
+# Absolute path to working wireguard adapter config for initramfs. This is
+# copied to initramfs and loaded after the hardware device is initialized to
+# complete wireguard configuration.
 ADAPTER=/etc/wireguard/initramfs.conf
 
 # URL to send a web request to set the local datetime.
@@ -59,42 +54,30 @@ DATETIME_URL=google.com
 # Persist wireguard interface after initramfs exits? Any value enables.
 PERSISTENT=
 
-###############################################################################
-# Adapter Configuration
-###############################################################################
-# During init the wireguard adapter must be initialized manually. Set values
-# from ADAPTER here; extracting the minimum information needed to stand-up the
-# adapter and load the rest of the wireguard configuration. These values must
-# match the values found in ADAPTER.
-#
-# Highly recommended to set PersistentKeepalives in ADAPTER to ensure
-# connections for non-exposed ports.
-
-# Wireguard interface name. Required.
-INTERFACE=${INTERFACE}
-
-# CIDR wireguard IPv4 interface address. Required IPv4, IPv6, or both.
-INTERFACE_ADDR_IPV4=${INTERFACE_ADDR}
-
-# CIDR wireguard IPv6 interface address. Required IPv4, IPv6, or both.
-INTERFACE_ADDR_IPV6=
-
-# Custom wireguard interface MTU. Default: empty (wireguard default). Optional.
-INTERFACE_MTU=
-
-# Allowed IPs from peers.
-#
-# A comma-separated list of IP addresses with CIDR masks from which incoming
-# traffic for this peer is allowed and to which outgoing traffic for this peer
-# is directed. All traffic is blocked by default.
-#
-# * '0.0.0.0/0' match all IPv4 addresses.
-# * '::/0' match all IPv6 addresses.
-#
-# Required.
-PEER_ALLOWED_IPS_IPV4=172.31.255.254/32
-PEER_ALLOWED_IPS_IPV6=
+# Enable debug logging (will expose key material). Any value enables.
+DEBUG=
 EOL
+
+# Migrate initramfs adapter configuration.
+CONFIG_FILE="/etc/wireguard/initramfs.conf"
+cat > "${CONFIG_FILE}" <<EOL
+[Interface]
+Address = ${INTERFACE_ADDR}
+PrivateKey = $(cat "${target_dir}/private_key")
+ListenPort = ${PEER_PORT}
+
+[Peer]
+PublicKey = $(cat "${target_dir}/pre_shared_key")
+Endpoint = ${PEER_ENDPOINT}
+AllowedIPs = ${ALLOWED_IPS}
+PersistentKeepalive = ${PERSISTENT_KEEPALIVES}
+EOL
+
+PRE_SHARED_KEY="${CONFIG_PATH}/pre_shared_key"
+if [ -s "${PRE_SHARED_KEY}" ]; then
+  PRE_SHARED_KEY_CONTENT=$(cat "${PRE_SHARED_KEY}")
+	echo "PresharedKey = ${PRE_SHARED_KEY_CONTENT}" >> "${CONFIG_FILE}"
+fi
 
 rm "${docs_dir}/examples/config"
 rm "${target_dir}/private_key"

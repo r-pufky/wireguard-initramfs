@@ -48,7 +48,7 @@ fi
 WG_INTERFACE_SECTION=$(sed -n '/^\[[Ii]/,/^\[/p' "${ADAPTER}")
 WG_PEER_SECTIONS=$(sed '/^\[[Ii]/,/^\[/d' "${ADAPTER}")
 WG_INTERFACE_NAME=$(basename "${ADAPTER}" | sed 's/[.].*$//')
-WG_INTERFACE_ADDRESSES=$(echo -n "$(echo "${WG_INTERFACE_SECTION}" | grep -i address | sed 's/address[ ]*=[ ]*//I')" | tr '\n' ' ')
+WG_INTERFACE_ADDRESSES=$(echo -n "$(echo "${WG_INTERFACE_SECTION}" | grep -i address | sed 's/address[ ]*=[ ]*//I;s/,/\ /g')" | tr '\n' ' ')
 WG_INTERFACE_MTU=$(echo "${WG_INTERFACE_SECTION}" | grep -i mtu | sed 's/mtu[ ]*=[ ]*//I')
 WG_INTERFACE_FW_MARK=$(echo "${WG_INTERFACE_SECTION}" | grep -i fwmark | sed 's/fwmark[ ]*=[ ]*//I')
 WG_INTERFACE_LISTEN_PORT=$(echo "${WG_INTERFACE_SECTION}" | grep -i listenport | sed 's/listenport[ ]*=[ ]*//I')
@@ -74,7 +74,7 @@ WG_ALLOWED_IPS=$(grep -i allowedips "${ADAPTER}" | sed 's/allowedips[ ]*=[ ]*//I
 PEER_ALLOWED_IPS_IPV4=''
 PEER_ALLOWED_IPS_IPV6=''
 for cidr in ${WG_ALLOWED_IPS}; do
-  case "${address}" in
+  case "${cidr}" in
     *:*) PEER_ALLOWED_IPS_IPV6="${PEER_ALLOWED_IPS_IPV6}${cidr} " ;;
     *) PEER_ALLOWED_IPS_IPV4="${PEER_ALLOWED_IPS_IPV4}${cidr} " ;;
   esac
@@ -114,16 +114,16 @@ fi
 
 # initramfs config with required primitives to turn-up interfaces.
 cat > "${DESTDIR}/etc/wireguard/initramfs" <<EOL
-ADAPTER=${ADAPTER}
-DATETIME_URL=${DATETIME_URL}
+ADAPTER="${ADAPTER}"
+DATETIME_URL="${DATETIME_URL}"
 ENABLE_QUICK=${ENABLE_QUICK}
 PERSISTENT=${PERSISTENT}
-INTERFACE=${WG_INTERFACE_NAME}
+INTERFACE="${WG_INTERFACE_NAME}"
 INTERFACE_MTU=${WG_INTERFACE_MTU}
-INTERFACE_ADDR_IPV4=$(echo "${INTERFACE_ADDR_IPV4}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-INTERFACE_ADDR_IPV6=$(echo "${INTERFACE_ADDR_IPV6}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-PEER_ALLOWED_IPS_IPV4=$(echo "${PEER_ALLOWED_IPS_IPV4}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-PEER_ALLOWED_IPS_IPV6=$(echo "${PEER_ALLOWED_IPS_IPV6}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+INTERFACE_ADDR_IPV4="$(echo "${INTERFACE_ADDR_IPV4}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+INTERFACE_ADDR_IPV6="$(echo "${INTERFACE_ADDR_IPV6}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+PEER_ALLOWED_IPS_IPV4="$(echo "${PEER_ALLOWED_IPS_IPV4}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+PEER_ALLOWED_IPS_IPV6="$(echo "${PEER_ALLOWED_IPS_IPV6}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
 EOL
 
 if [ -n "${DEBUG}" ]; then

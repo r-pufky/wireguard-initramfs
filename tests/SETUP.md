@@ -96,7 +96,7 @@ PrivateKey = iMgmYiJ5KykymUlWO/qtaC1azuFqH3zKSxs+dEgDRmI=
 PublicKey = gyW39I9bAiOBXyhL8LWw9qwiTZgMmtAbsWtLUv8uKTc=
 AllowedIPs = 172.31.255.254/32
 PresharedKey = xZOa9wXPCL86UtIEMc4kKwj/wsCohs+S9NexPLDaFwU=
-Endpoint = {SERVER INTERFACE IP}:51820
+Endpoint = {SERVER INTERFACE IP}:51820  # update endpoint IP.
 ```
 
 Enable wireguard:

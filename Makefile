@@ -11,6 +11,16 @@ help:
 	@echo "  make uninstall"
 	@echo "        Remove wireguard-initramfs from initramfs."
 	@echo
+	@echo "  make build_initramfs [CONFIG=]"
+	@echo "        Rebuild initramfs for Debian systems."
+	@echo
+	@echo "        CONFIG: absolute path to alternative configuration."
+	@echo
+	@echo "  make build_initramfs_rpi [CONFIG=]"
+	@echo "        Rebuild initramfs for Raspberry Pi systems."
+	@echo
+	@echo "        CONFIG: absolute path to alternative configuration."
+	@echo
 
 .PHONY: root_check
 root_check:
@@ -29,7 +39,6 @@ install_files:
 .PHONY: install
 install: root_check remove_legacy install_dependencies_debian
 	@echo "Installing wireguard-initramfs ..."
-	@chmod 0755 "./scripts/build_wg_setconf.sh"
 	@./scripts/build_wg_setconf.sh $@ || exit 1
 	@echo "... created wireguard configuration file."
 	+$(MAKE) install_files

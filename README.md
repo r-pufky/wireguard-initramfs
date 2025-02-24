@@ -62,7 +62,7 @@ Rebuild initramfs to use using any of these methods:
 
 ```bash
 make build_initramfs  # Debian
-make build_initramfs_rpi`  # Raspberry Pi
+make build_initramfs_rpi  # Raspberry Pi
 update-initramfs -u -k all && update-grub  # Manual build
 reboot
 ```

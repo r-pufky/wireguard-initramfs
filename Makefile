@@ -2,7 +2,7 @@
 
 INITRAMFS = $(DESTDIR)/etc/initramfs-tools
 
-.PHONY: help 
+.PHONY: help
 help:
 	@echo "USAGE:"
 	@echo "  make install"
@@ -10,6 +10,16 @@ help:
 	@echo
 	@echo "  make uninstall"
 	@echo "        Remove wireguard-initramfs from initramfs."
+	@echo
+	@echo "  make build_initramfs [CONFIG=]"
+	@echo "        Rebuild initramfs for Debian systems."
+	@echo
+	@echo "        CONFIG: absolute path to alternative configuration."
+	@echo
+	@echo "  make build_initramfs_rpi [CONFIG=]"
+	@echo "        Rebuild initramfs for Raspberry Pi systems."
+	@echo
+	@echo "        CONFIG: absolute path to alternative configuration."
 	@echo
 
 .PHONY: root_check

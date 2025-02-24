@@ -15,7 +15,6 @@ esac
 
 . /scripts/functions
 
-# define own functions
 translate_month() {
     case "$1" in
     Jan) month_number=01 ;;
@@ -67,7 +66,6 @@ convert_web_date_compare() {
 
 generate_resolv_conf() {
   for adapter in /run/net-*.conf; do
-    # shellcheck source=/run/net-*.conf
     . "${adapter}"
 
     if [ -n "${IPV4DNS0}" ]; then
@@ -88,19 +86,19 @@ generate_resolv_conf() {
   done
 }
 
-log_begin_msg 'check dependencies'
+log_begin_msg 'Check dependencies'
 if [ ! -e /sbin/wg ]; then
-  log_failure_msg 'Wireguard binary not found; skipping start'
+  log_failure_msg 'Wireguard binary (/sbin/wg) not found; skipping start'
   exit 0
 fi
 
-if [ ! -e /etc/wireguard/config ]; then
-  log_failure_msg 'Wireguard config not found; skipping start'
+if [ ! -e /etc/wireguard/initramfs ]; then
+  log_failure_msg 'Wireguard config (/etc/wireguard/initramfs) not found; skipping start'
   exit 0
 fi
 log_end_msg
 
-log_begin_msg 'enable networking'
+log_begin_msg 'Enable networking'
 # Ensure networking is started (idempotent) and setup DNS.
 configure_networking
 
@@ -110,19 +108,25 @@ fi
 log_end_msg
 
 log_begin_msg 'Loading wireguard config'
-. /etc/wireguard/config
+. /etc/wireguard/initramfs
 
+if [ ! -e "${ADAPTER}" ]; then
+  log_failure_msg "Wireguard adapter config (${ADAPTER}) not found; skipping start"
+  exit 0
+fi
+
+# Final sanity check to prevent boot wedging.
 if [ -z "${INTERFACE}" ]; then
   log_failure_msg 'Interface name is not defined'
   return 1
 fi
 
-if [ -z "${INTERFACE_ADDR_IPV4}" && [ -z "${INTERFACE_ADDR_IPV6}" ]; then
+if [ -z "${INTERFACE_ADDR_IPV4}" ] && [ -z "${INTERFACE_ADDR_IPV6}" ]; then
   log_failure_msg 'Interface address is not defined'
   return 1
 fi
 
-if [ -z "${ALLOWED_IPS_IPV4}" && -z "${ALLOWED_IPS_IPV6}" ]; then
+if [ -z "${PEER_ALLOWED_IPS_IPV4}" ] && [ -z "${PEER_ALLOWED_IPS_IPV6}" ]; then
   log_failure_msg 'Allowed IPs is not defined'
   return 1
 fi
@@ -147,30 +151,42 @@ if [ -n "${DATETIME_URL}" ]; then
 fi
 
 log_begin_msg 'Initialize and starting wireguard'
-ip link add dev "${INTERFACE}" type wireguard
-
-wg setconf "${INTERFACE}" /etc/wireguard/"${INTERFACE}".conf
-
-if [ -n "${INTERFACE_ADDR_IPV4}" ]; then
-  ip -4 addr add "${INTERFACE_ADDR_IPV4}" dev "${INTERFACE}"
-fi
-
-if [ -n "${INTERFACE_ADDR_IPV6}" ]; then
-  ip -6 addr add "${INTERFACE_ADDR_IPV6}" dev "${INTERFACE}"
-fi
-
-if [ -n "${MTU}" ]; then
-  ip link set "${INTERFACE}" "mtu ${MTU}" up
+if [ -n "${ENABLE_QUICK}" ]; then
+  wg-quick up "${ADAPTER}"
 else
-  ip link set "${INTERFACE}" up
-fi
+  ip link add dev "${INTERFACE}" type wireguard
+  wg setconf "${INTERFACE}" "${ADAPTER}"
 
-if [ -n "${ALLOWED_IPS_IPV4}" ]; then
-  ip -4 route add "${ALLOWED_IPS_IPV4}" dev "${INTERFACE}"
-fi
+  # Interface must be up before adding routes.
+  if [ -n "${INTERFACE_MTU}" ]; then
+    ip link set "mtu ${INTERFACE_MTU}" dev "${INTERFACE}" up
+  else
+    ip link set "${INTERFACE}" up
+  fi
 
-if [ -n "${ALLOWED_IPS_IPV6}" ]; then
-  ip -6 route add "${ALLOWED_IPS_IPV6}" dev "${INTERFACE}"
+  if [ -n "${INTERFACE_ADDR_IPV4}" ]; then
+    for i in ${INTERFACE_ADDR_IPV4}; do
+      ip -4 addr add "${i}" dev "${INTERFACE}"
+    done
+  fi
+
+  if [ -n "${INTERFACE_ADDR_IPV6}" ]; then
+    for i in ${INTERFACE_ADDR_IPV6}; do
+      ip -6 addr add "${i}" dev "${INTERFACE}"
+    done
+  fi
+
+  if [ -n "${PEER_ALLOWED_IPS_IPV4}" ]; then
+    for i in ${PEER_ALLOWED_IPS_IPV4}; do
+      ip -4 route add "${i}" dev "${INTERFACE}"
+    done
+  fi
+
+  if [ -n "${PEER_ALLOWED_IPS_IPV6}" ]; then
+    for i in ${PEER_ALLOWED_IPS_IPV6}; do
+      ip -6 route add "${i}" dev "${INTERFACE}"
+    done
+  fi
 fi
 
 log_end_msg

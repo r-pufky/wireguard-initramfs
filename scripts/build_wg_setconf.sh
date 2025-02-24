@@ -69,8 +69,8 @@ if [ -n "${INTERFACE_ADDR_IPV4}" ]; then
 fi
 
 if [ -n "${INTERFACE_ADDR_IPV6}" ]; then
-  # Enable newlines on here document processing.
-  WG_INTER_ADDRESS=$(printf "${WG_INTER_ADDRESS}\nAddress = ${INTERFACE_ADDR_IPV6}")
+  nl=$'\n'
+  WG_INTER_ADDRESS="${WG_INTER_ADDRESS}${nl}Address = ${INTERFACE_ADDR_IPV6}"
 fi
 
 # Separate lists only needed for interface setup, converge.
@@ -79,7 +79,7 @@ if [ -n "${ALLOWED_IPS_IPV4}" ]; then
 fi
 
 if [ -n "${ALLOWED_IPS_IPV6}" ]; then
-  PEER_ALLOWED_IPS="${CLIENT_ALLOWED_IPS},${ALLOWED_IPS_IPV6}"
+  PEER_ALLOWED_IPS="${PEER_ALLOWED_IPS},${ALLOWED_IPS_IPV6}"
 fi
 
 # build wireguard config file

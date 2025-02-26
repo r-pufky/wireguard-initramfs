@@ -93,14 +93,19 @@ wireguard first. Then restrict to the wireguard network once it is working:
 DROPBEAR_OPTIONS='... -p 172.31.255.10:22 ...'
 ```
 
-## Legacy compatibility
+## Legacy compatibility (Migration)
 
 If you are a user using a previous release, such as the one dated
-2023-10-21, you can update your current projects by running
+2023-10-21, you can update your current projects by running:
 
 ```bash
 sudo bash scripts/migrate_project_structure.sh
+make install
+make build_initramfs
 ```
+
+Adapter configuration is located in `/etc/wireguard/initramfs.conf` and
+initramfs configuration is located in `/etc/wireguard/initramfs`.
 
 This should keep your project structure and contents intact; however manual
 **validation** is required as full wireguard adapter configs are now supported.

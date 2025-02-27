@@ -99,7 +99,43 @@ make build_initramfs
 reboot
 ```
 
-## 3. Rapsberry Pi
+## 5. 2023-10-21 Migration
+
+### Success Criteria
+* Verify a working 2023-10-21 upgrade to current config structure works without
+  requiring manual reconfiguration.
+* Test until 2023-10-21 no longer works on current OS releases.
+
+### Client
+
+Install 2023-10-21 and configure with existing wireguard network.
+``` bash
+wget --content-disposition https://github.com/r-pufky/wireguard-initramfs/archive/refs/tags/2023-10-21.tar.gz -P /tmp
+mkdir /root/2023-10-21 && tar xvf /tmp/wireguard-initramfs-2023-10-21.tar.gz -C /root
+cd /root/wireguard-initramfs-2023-10-21
+make install
+cat preshare.key > /etc/wireguard-initramfs/pre_shared_key
+cat client.key > /etc/wireguard-initramfs/private_key
+cat 2023-10-21.config > /etc/wireguard-initramfs/config  # update endpoint IP.
+update-initramfs -u && update-grub
+reboot
+```
+* Ensure endpoint is updated to server testing interface IP.
+* Server can SSH to client wireguard IP with dropbear identity and unlock drive
+  to boot.
+
+Install release and run migrate_project_structure.sh:
+``` bash
+git clone https://github.com/r-pufky/wireguard-initramfs /root/wireguard-initramfs
+cd /root/wireguard-initramfs
+./scripts/migrate_project_structure.sh
+make install
+make build_initramfs
+reboot
+```
+* System ready to test.
+
+## 6. Rapsberry Pi
 
 ### Success Criteria
 * All defined tests pass on Raspberry Pi platform.

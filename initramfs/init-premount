@@ -16,7 +16,7 @@ esac
 . /scripts/functions
 
 translate_month() {
-    case "$1" in
+    case "${1}" in
     Jan) month_number=01 ;;
     Feb) month_number=02 ;;
     Mar) month_number=03 ;;
@@ -35,11 +35,11 @@ translate_month() {
 }
 
 convert_web_date() {
-  year=$(echo "$1" | cut -d' ' -f 4)
-  month=$(echo "$1" | cut -d' ' -f 3)
-  day=$(echo "$1" | cut -d' ' -f 2)
+  year=$(echo "${1}" | cut -d' ' -f 4)
+  month=$(echo "${1}" | cut -d' ' -f 3)
+  day=$(echo "${1}" | cut -d' ' -f 2)
 
-  datetime=$(echo "$1" | cut -d' ' -f 5)
+  datetime=$(echo "${1}" | cut -d' ' -f 5)
   hour=$(echo "${datetime}" | cut -d':' -f 1)
   minutes=$(echo "${datetime}" | cut -d':' -f 2)
   seconds=$(echo "${datetime}" | cut -d':' -f 3)
@@ -50,11 +50,11 @@ convert_web_date() {
 }
 
 convert_web_date_compare() {
-  year=$(echo "$1" | cut -d' ' -f 4)
-  month=$(echo "$1" | cut -d' ' -f 3)
-  day=$(echo "$1" | cut -d' ' -f 2)
+  year=$(echo "${1}" | cut -d' ' -f 4)
+  month=$(echo "${1}" | cut -d' ' -f 3)
+  day=$(echo "${1}" | cut -d' ' -f 2)
 
-  datetime=$(echo "$1" | cut -d' ' -f 5)
+  datetime=$(echo "${1}" | cut -d' ' -f 5)
   hour=$(echo "${datetime}" | cut -d':' -f 1)
   minutes=$(echo "${datetime}" | cut -d':' -f 2)
   seconds=$(echo "${datetime}" | cut -d':' -f 3)
@@ -86,14 +86,14 @@ generate_resolv_conf() {
   done
 }
 
-log_begin_msg 'Check dependencies'
+log_begin_msg 'Check required dependencies'
 if [ ! -e /sbin/wg ]; then
-  log_failure_msg 'Wireguard binary (/sbin/wg) not found; skipping start'
+  log_failure_msg '/sbin/wg: not found; skipping start'
   exit 0
 fi
 
 if [ ! -e /etc/wireguard/initramfs ]; then
-  log_failure_msg 'Wireguard config (/etc/wireguard/initramfs) not found; skipping start'
+  log_failure_msg '/etc/wireguard/initramfs: not found; skipping start'
   exit 0
 fi
 log_end_msg
@@ -109,13 +109,26 @@ log_end_msg
 
 log_begin_msg 'Loading wireguard config'
 . /etc/wireguard/initramfs
+log_end_msg
 
-if [ ! -e "${ADAPTER}" ]; then
-  log_failure_msg "Wireguard adapter config (${ADAPTER}) not found; skipping start"
+log_begin_msg 'Check wg-quick dependencies'
+if [ -n "${ENABLE_QUICK}" ] && [ ! -e /sbin/wg-quick ]; then
+  log_failure_msg '/sbin/wg-quick: not found; skipping start'
   exit 0
 fi
 
-# Final sanity check to prevent boot wedging.
+if [ -n "${ENABLE_QUICK}" ] && [ ! -e /usr/bin/bash ]; then
+  log_failure_msg '/usr/bin/bash: not found; skipping start'
+  exit 0
+fi
+log_end_msg
+
+log_begin_msg 'Final sanity check to prevent boot wedging'
+if [ ! -e "${ADAPTER}" ]; then
+  log_failure_msg "${ADAPTER}: not found; skipping start"
+  exit 0
+fi
+
 if [ -z "${INTERFACE}" ]; then
   log_failure_msg 'Interface name is not defined'
   return 1
@@ -133,7 +146,7 @@ fi
 log_end_msg
 
 if [ -n "${DATETIME_URL}" ]; then
-  log_begin_msg 'set local date time'
+  log_begin_msg 'Set local date time'
   date_from_web=$(wget -qSO- "${DATETIME_URL}" 2>&1 | sed -n 's/^ *Date: *//p' | head -n 1)
 
   date_web_comp=$(date -d "$(convert_web_date_compare "${date_from_web}")" +%s)
@@ -145,12 +158,12 @@ if [ -n "${DATETIME_URL}" ]; then
     log_warning_msg "set date to: ${date_to_set}"
     date -s "${date_to_set}" > /dev/null
   else
-    log_success_msg "no need to set new date"
+    log_success_msg "No need to set new date"
   fi
   log_end_msg
 fi
 
-log_begin_msg 'Initialize and starting wireguard'
+log_begin_msg 'Initialize and start wireguard'
 if [ -n "${ENABLE_QUICK}" ]; then
   wg-quick up "${ADAPTER}"
 else

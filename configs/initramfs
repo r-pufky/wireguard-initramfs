@@ -22,6 +22,14 @@
 # Absolute path to working wireguard adapter config for initramfs. This is
 # copied to initramfs and loaded after the hardware device is initialized to
 # complete wireguard configuration.
+#
+# PersistentKeepalive is usually required so the machine checks in with the
+# wireguard endpoint while booting. If there are issues with no connectivity
+# but the adapter config works fine when the system is fully booted, this is
+# very likely the cause. Suggest 25 seconds:
+#
+#   PersistentKeepalive = 25
+#
 ADAPTER=/etc/wireguard/initramfs.conf
 
 # Enable wg-quick for adapter management?

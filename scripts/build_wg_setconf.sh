@@ -11,19 +11,17 @@ else
   CONFIG_PATH="${CONFIG}"
 fi
 
-# shellcheck source="${CONFIG_PATH}/initramfs" - load variables.
-WG_CONFIG="${CONFIG_PATH}/initramfs"
-source "${WG_CONFIG}"
+WG_INIT_CONFIG="${CONFIG_PATH}/initramfs"
+. "${WG_INIT_CONFIG}"
 
 if [ ! -s "${ADAPTER}" ]; then
   echo "Wireguard adapter config not found. Missing: ${ADAPTER}"
   exit 1
 fi
-
 if [ -z "${DATETIME_URL}" ]; then
   echo "DATETIME_URL not set (may cause issues for Raspberry Pi devices)."
 fi
 
-cp "${WG_CONFIG}" "/etc/wireguard/initramfs"
+cp "${WG_INIT_CONFIG}" "/etc/wireguard/initramfs"
 
 exit 0

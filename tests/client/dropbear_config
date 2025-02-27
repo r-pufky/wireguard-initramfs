@@ -17,7 +17,6 @@ DROPBEAR_OPTIONS='-s -g -j -k -m -p 22 -T 1'
 #
 IFDOWN='*'
 
-
 #
 # On local (non-NFS) mounts, the network stack and dropbear are started
 # asynchronously at init-premount stage.  This value specifies the

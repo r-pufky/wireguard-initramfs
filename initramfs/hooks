@@ -28,20 +28,20 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
-WG_INIT_CONFIG="/etc/wireguard/initramfs"
+WG_INIT_CONFIG='/etc/wireguard/initramfs'
 
-if [ ! -s "$WG_INIT_CONFIG" ]; then
-  echo "Wireguard initramfs config required. Missing: $WG_INIT_CONFIG"
+if [ ! -s "${WG_INIT_CONFIG}" ]; then
+  echo "Wireguard initramfs config required. Missing: ${WG_INIT_CONFIG}"
   return 1
 fi
-. "$WG_INIT_CONFIG"
+. "${WG_INIT_CONFIG}"
 
 if [ ! -s "${ADAPTER}" ]; then
   echo "Wireguard adapter config not found. Missing: ${ADAPTER}"
   exit 1
 fi
 if [ -z "${DATETIME_URL}" ]; then
-  echo "DATETIME_URL not set (may cause issues for Raspberry Pi devices)."
+  echo 'DATETIME_URL not set (may cause issues for Raspberry Pi devices).'
 fi
 
 # Parse interface section and sanity check.
@@ -116,8 +116,8 @@ fi
 cat > "${DESTDIR}/etc/wireguard/initramfs" <<EOL
 ADAPTER="${ADAPTER}"
 DATETIME_URL="${DATETIME_URL}"
-ENABLE_QUICK=${ENABLE_QUICK}
-PERSISTENT=${PERSISTENT}
+ENABLE_QUICK="${ENABLE_QUICK}"
+PERSISTENT="${PERSISTENT}"
 INTERFACE="${WG_INTERFACE_NAME}"
 INTERFACE_MTU=${WG_INTERFACE_MTU}
 INTERFACE_ADDR_IPV4="$(echo "${INTERFACE_ADDR_IPV4}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
@@ -129,11 +129,11 @@ EOL
 if [ -n "${DEBUG}" ]; then
   echo "${DESTDIR}${ADAPTER}"
   cat "${DESTDIR}${ADAPTER}"
-  echo "-----"
+  echo '---'
   echo "${DESTDIR}/etc/wireguard/initramfs"
   cat "${DESTDIR}/etc/wireguard/initramfs"
 fi
 
-# Add modules and wireguard exec
+# Required wireguard dependencies.
 manual_add_modules wireguard
 copy_exec /usr/bin/wg /sbin

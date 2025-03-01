@@ -14,10 +14,6 @@ fi
 WG_INIT_CONFIG="${CONFIG_PATH}/initramfs"
 . "${WG_INIT_CONFIG}"
 
-if [ ! -s "${ADAPTER}" ]; then
-  echo "Wireguard adapter config not found. Missing: ${ADAPTER}"
-  exit 1
-fi
 if [ -z "${DATETIME_URL}" ]; then
   echo "DATETIME_URL not set (may cause issues for Raspberry Pi devices)."
 fi

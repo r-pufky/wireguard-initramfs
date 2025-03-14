@@ -31,17 +31,17 @@ esac
 WG_INIT_CONFIG='/etc/wireguard/initramfs'
 
 if [ ! -s "${WG_INIT_CONFIG}" ]; then
-  echo "Wireguard initramfs config ${WG_INIT_CONFIG} not found, skipping wireguard."
+  echo "E: wireguard: Initramfs config ${WG_INIT_CONFIG} not found, skipping wireguard."
   exit 0
 fi
 . "${WG_INIT_CONFIG}"
 
 if [ ! -s "${ADAPTER}" ]; then
-  echo "Wireguard adapter config ${ADAPTER} not found, skipping wireguard."
+  echo "E: wireguard: Adapter config ${ADAPTER} not found, skipping wireguard."
   exit 0
 fi
 if [ -z "${DATETIME_URL}" ]; then
-  echo 'DATETIME_URL not set (may cause issues for Raspberry Pi devices).'
+  echo 'W: wireguard: DATETIME_URL not set (may cause issues for Raspberry Pi devices).'
 fi
 
 # Parse interface section and sanity check.
@@ -64,7 +64,7 @@ for address in ${WG_INTERFACE_ADDRESSES}; do
 done
 
 if [ -z "${INTERFACE_ADDR_IPV4}" ] && [ -z "${INTERFACE_ADDR_IPV6}" ]; then
-  echo "${ADAPTER}: [Interface] must have one 'Address' definition."
+  echo "E: wireguard: ${ADAPTER}: [Interface] must have one 'Address' definition."
   exit 1
 fi
 
@@ -81,7 +81,7 @@ for cidr in ${WG_ALLOWED_IPS}; do
 done
 
 if [ -z "${PEER_ALLOWED_IPS_IPV4}" ] && [ -z "${PEER_ALLOWED_IPS_IPV6}" ]; then
-  echo "${ADAPTER}: [Peer] must have one 'AllowedIPs' definition."
+  echo "E: wireguard: ${ADAPTER}: [Peer] must have one 'AllowedIPs' definition."
   exit 1
 fi
 
@@ -127,11 +127,11 @@ PEER_ALLOWED_IPS_IPV6="$(echo "${PEER_ALLOWED_IPS_IPV6}" | sed 's/^[[:space:]]*/
 EOL
 
 if [ -n "${DEBUG}" ]; then
-  echo "${DESTDIR}${ADAPTER}"
-  cat "${DESTDIR}${ADAPTER}"
-  echo '---'
-  echo "${DESTDIR}/etc/wireguard/initramfs"
-  cat "${DESTDIR}/etc/wireguard/initramfs"
+  echo "D: wireguard: ${DESTDIR}${ADAPTER}"
+  cat "${DESTDIR}${ADAPTER}" | sed 's/^/D: wireguard: /'
+  echo 'D: wireguard: ---'
+  echo "D: wireguard: ${DESTDIR}/etc/wireguard/initramfs"
+  cat "${DESTDIR}/etc/wireguard/initramfs" | sed 's/^/D: wireguard: /'
 fi
 
 # Required wireguard dependencies.

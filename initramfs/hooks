@@ -31,14 +31,14 @@ esac
 WG_INIT_CONFIG='/etc/wireguard/initramfs'
 
 if [ ! -s "${WG_INIT_CONFIG}" ]; then
-  echo "Wireguard initramfs config required. Missing: ${WG_INIT_CONFIG}"
-  return 1
+  echo "Wireguard initramfs config ${WG_INIT_CONFIG} not found, skipping wireguard."
+  exit 0
 fi
 . "${WG_INIT_CONFIG}"
 
 if [ ! -s "${ADAPTER}" ]; then
-  echo "Wireguard adapter config not found. Missing: ${ADAPTER}"
-  exit 1
+  echo "Wireguard adapter config ${ADAPTER} not found, skipping wireguard."
+  exit 0
 fi
 if [ -z "${DATETIME_URL}" ]; then
   echo 'DATETIME_URL not set (may cause issues for Raspberry Pi devices).'

@@ -168,7 +168,12 @@ if [ -n "${ENABLE_QUICK}" ]; then
   wg-quick up "${ADAPTER}"
 else
   ip link add dev "${INTERFACE}" type wireguard
-  wg setconf "${INTERFACE}" "${ADAPTER}"
+  if [ -e "/etc/wireguard/privatekey.jwe" ]; then
+    log_success_msg "Found jwe keyfile"
+    clevis decrypt tpm2 < /etc/wireguard/privatekey.jwe > /etc/wireguard/privatekey
+    wg set "${INTERFACE}" private-key /etc/wireguard/privatekey
+  fi
+  wg addconf "${INTERFACE}" "${ADAPTER}"
 
   # Interface must be up before adding routes.
   if [ -n "${INTERFACE_MTU}" ]; then

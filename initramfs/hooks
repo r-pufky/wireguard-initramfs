@@ -52,7 +52,10 @@ WG_INTERFACE_ADDRESSES=$(echo -n "$(echo "${WG_INTERFACE_SECTION}" | grep -i add
 WG_INTERFACE_MTU=$(echo "${WG_INTERFACE_SECTION}" | grep -i mtu | sed 's/mtu[ ]*=[ ]*//I')
 WG_INTERFACE_FW_MARK=$(echo "${WG_INTERFACE_SECTION}" | grep -i fwmark | sed 's/fwmark[ ]*=[ ]*//I')
 WG_INTERFACE_LISTEN_PORT=$(echo "${WG_INTERFACE_SECTION}" | grep -i listenport | sed 's/listenport[ ]*=[ ]*//I')
-WG_INTERFACE_KEY=$(echo "${WG_INTERFACE_SECTION}" | grep -i privatekey | sed 's/privatekey[ ]*=[ ]*//I')
+
+if [ ! -s "/etc/wireguard/privatekey.jwe" ]; then
+  WG_INTERFACE_KEY=$(echo "${WG_INTERFACE_SECTION}" | grep -i privatekey | sed 's/privatekey[ ]*=[ ]*//I')
+fi
 
 INTERFACE_ADDR_IPV4=''
 INTERFACE_ADDR_IPV6=''
@@ -100,8 +103,20 @@ if [ -n "${ENABLE_QUICK}" ]; then
   copy_exec /usr/bin/bash
   copy_exec /usr/bin/wg-quick /sbin
 else
-  # wg base adapter config.
-  cat > "${DESTDIR}${ADAPTER}" <<EOL
+  if [ -s "/etc/wireguard/privatekey.jwe" ]; then
+    echo "copy jwe privatekey"
+    cp "/etc/wireguard/privatekey.jwe" "${DESTDIR}/etc/wireguard/privatekey.jwe"
+    # wg base adapter config.
+    cat > "${DESTDIR}${ADAPTER}" <<EOL
+[Interface]
+ListenPort = ${WG_INTERFACE_LISTEN_PORT:-0}
+FwMark = ${WG_INTERFACE_FW_MARK:-0}
+
+[Peer]
+${WG_PEER_SECTIONS}
+EOL
+  else
+    cat > "${DESTDIR}${ADAPTER}" <<EOL
 [Interface]
 PrivateKey = ${WG_INTERFACE_KEY}
 ListenPort = ${WG_INTERFACE_LISTEN_PORT:-0}
@@ -110,8 +125,8 @@ FwMark = ${WG_INTERFACE_FW_MARK:-0}
 [Peer]
 ${WG_PEER_SECTIONS}
 EOL
+  fi
 fi
-
 # initramfs config with required primitives to turn-up interfaces.
 cat > "${DESTDIR}/etc/wireguard/initramfs" <<EOL
 ADAPTER="${ADAPTER}"

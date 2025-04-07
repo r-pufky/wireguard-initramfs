@@ -93,6 +93,27 @@ wireguard first. Then restrict to the wireguard network once it is working:
 DROPBEAR_OPTIONS='... -p 172.31.255.10:22 ...'
 ```
 
+
+## Clevis-TPM2
+
+`wireguard-initramfs` can be combined with clevis-tpm2 to enable the protection
+of the wireguard private key. This protection does only make sense, if the owner
+is capable of using a TPM correctly.
+This information needs to be undestood!
+- https://uapi-group.org/specifications/specs/linux_tpm_pcr_registry/
+
+You need to adapt for wg-quick usage:
+`PostUp = wg set %i private-key <(sh -c "clevis decrypt tpm2 < /etc/wireguard/privatekey.jwe")`
+
+The PreSharedKey is not secured in this way!
+### Requirements
+
+1. a working TPM2
+2. [clevis-tpm2](https://github.com/latchset/clevis) installed and firm to use
+2. [clevis-initramfs](https://github.com/latchset/clevis) installed and firm to use
+3. a jwe encoded wireguard private key
+
+
 ## Legacy compatibility (Migration)
 
 If you are a user using a previous release, such as the one dated
